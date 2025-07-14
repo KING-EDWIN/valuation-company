@@ -44,9 +44,17 @@ const cardColors: Record<string, string[]> = {
 };
 
 export default function Dashboard() {
+  // Move all hooks to the top
   const { user, logout } = useUser();
   const { jobs, updateJob, addJob } = useJobs();
   const router = useRouter();
+  // HOOKS MUST BE HERE
+  const [showClientForm, setShowClientForm] = useState(false);
+  const [newClient, setNewClient] = useState({ clientName: '', assetType: 'land', assetDetails: { location: '', landTitle: '', plotNo: '', size: '', make: '', model: '', regNo: '', year: '' } });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingJobId, setUploadingJobId] = useState<string | null>(null);
+  const [fieldReportFile, setFieldReportFile] = useState<File | null>(null);
+
   if (!user) return null;
   const pages = rolePages[user.role] || [];
 
@@ -63,15 +71,6 @@ export default function Dashboard() {
   if (user.role === "accounts") relevantJobs = jobs.filter(j => j.status === "pending payment");
 
   const [primary, warning, success] = cardColors[user.role] || ['#1976d2', '#ff9800', '#43a047'];
-
-  // Admin: Add new client form state
-  const [showClientForm, setShowClientForm] = useState(false);
-  const [newClient, setNewClient] = useState({ clientName: '', assetType: 'land', assetDetails: { location: '', landTitle: '', plotNo: '', size: '', make: '', model: '', regNo: '', year: '' } });
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Field Team: Field report upload state
-  const [uploadingJobId, setUploadingJobId] = useState<string | null>(null);
-  const [fieldReportFile, setFieldReportFile] = useState<File | null>(null);
 
   // Helper: Render client form fields
   const renderClientFormFields = (assetType: string) => assetType === 'land' ? (
