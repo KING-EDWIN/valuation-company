@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Stanfield Demo – Valuers Meeting Management System
 
-## Getting Started
+This is a demo application for managing the workflow of a property valuation company, built with **Next.js** and **Material UI**. It features role-based access for all key steps in the valuation process, from client instruction to final billing.
 
-First, run the development server:
+## Features
+- **Role-based login**: Client, Admin, Survey Manager, Field Team, QA Officer, Managing Director, Accounts
+- **Dashboard**: See actions relevant to your role
+- **Process Flow**: Each step in the business process is a protected page
+- **Org Chart & Process Flow**: Visualize company structure and workflow
+- **Modern UI**: Built with Material UI
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Roles & Flow
+1. **Client**: Submit instruction
+2. **Admin**: Assign inspection, admin reporting
+3. **Survey Manager**: Assign field team
+4. **Field Team**: Inspection reporting, report writing
+5. **QA Officer**: Quality assurance
+6. **Managing Director**: Approve/reject reports
+7. **Accounts**: Final billing
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Getting Started (Local Development)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+2. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deployment (Vercel)
+1. Push this repo to GitHub.
+2. Go to [vercel.com](https://vercel.com), import your repo, and deploy (Next.js is auto-detected).
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+**Demo Users:**
+- Login as any role from the login page to see the relevant dashboard and actions.
+- All flows are demo-only (no real backend or data persistence).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Built for Stanfield as a workflow demo.
