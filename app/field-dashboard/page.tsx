@@ -12,8 +12,6 @@ export default function FieldDashboard() {
   const { notifications, clearNotifications, addNotification } = useNotifications();
   const [report, setReport] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState<Record<string, boolean>>({});
-  const [openFormJobId, setOpenFormJobId] = useState<string | null>(null);
-  const [formViewed, setFormViewed] = useState<Record<string, boolean>>({});
 
   // Clear notifications for field team on mount
   useEffect(() => { clearNotifications("field_team"); }, [clearNotifications]);

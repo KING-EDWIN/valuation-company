@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from "../components/UserContext";
-import NavBar from "../components/NavBar";
 import MuiProvider from "../components/MuiProvider";
 import { JobsProvider } from "../components/JobsContext";
 import { NotificationsProvider } from "../components/NotificationsContext";

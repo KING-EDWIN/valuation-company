@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Box, Typography, Paper, Button, Alert, Stack, Card, CardContent, Avatar, Chip, Fade, Grow, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from "@mui/material";
+import { Box, Typography, Paper, Button, Alert, Stack, Card, CardContent, Avatar, Chip, Fade, Grow, TextField } from "@mui/material";
 import { useJobs } from "../../components/JobsContext";
 import { useNotifications } from "../../components/NotificationsContext";
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -8,39 +8,58 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import GavelIcon from '@mui/icons-material/Gavel';
 import SearchIcon from '@mui/icons-material/Search';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import { format, parseISO } from "date-fns";
 
 export default function MDDashboard() {
   const { jobs, updateJob } = useJobs();
   const { notifications, clearNotifications, addNotification } = useNotifications();
   const [submitted, setSubmitted] = useState<Record<string, boolean>>({});
-  const [openFormJobId, setOpenFormJobId] = useState<string | null>(null);
-  const [openReportJobId, setOpenReportJobId] = useState<string | null>(null);
-  const [openQaJobId, setOpenQaJobId] = useState<string | null>(null);
-  const [formViewed, setFormViewed] = useState<Record<string, boolean>>({});
-  const [reportViewed, setReportViewed] = useState<Record<string, boolean>>({});
-  const [qaViewed, setQaViewed] = useState<Record<string, boolean>>({});
   const [revokeReason, setRevokeReason] = useState<Record<string, string>>({});
+  const [search, setSearch] = useState("");
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  // --- Business/Employee/Client Stats ---
-  // Employee performance: count jobs per surveyor, QA, MD
+  // --- Employee Performance ---
   const employeeStats = jobs.reduce((acc, job) => {
     if (job.chain.surveyor) acc.surveyor[job.chain.surveyor] = (acc.surveyor[job.chain.surveyor] || 0) + 1;
     if (job.chain.qa) acc.qa[job.chain.qa] = (acc.qa[job.chain.qa] || 0) + 1;
     if (job.chain.md) acc.md[job.chain.md] = (acc.md[job.chain.md] || 0) + 1;
     return acc;
   }, { surveyor: {}, qa: {}, md: {} } as { surveyor: Record<string, number>, qa: Record<string, number>, md: Record<string, number> });
-  // Client stats: count jobs per client
+  const topSurveyor = Object.entries(employeeStats.surveyor).sort((a, b) => b[1] - a[1])[0];
+  const topQA = Object.entries(employeeStats.qa).sort((a, b) => b[1] - a[1])[0];
+  const topMD = Object.entries(employeeStats.md).sort((a, b) => b[1] - a[1])[0];
+
+  // --- Client Insights ---
   const clientStats = jobs.reduce((acc, job) => {
     acc[job.clientName] = (acc[job.clientName] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
-  // --- Past Reports Search ---
-  const [search, setSearch] = useState("");
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const topClients = Object.entries(clientStats).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const pendingByClient = jobs.filter(j => j.status !== "complete").reduce((acc, job) => {
+    acc[job.clientName] = (acc[job.clientName] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  const mostPendingClient = Object.entries(pendingByClient).sort((a, b) => b[1] - a[1])[0];
+
+  // --- Business Health ---
+  const now = new Date();
+  const jobsThisMonth = jobs.filter(j => j.clientForm?.createdAt && new Date(j.clientForm.createdAt).getMonth() === now.getMonth() && new Date(j.clientForm.createdAt).getFullYear() === now.getFullYear());
+  const jobsLastMonth = jobs.filter(j => j.clientForm?.createdAt && new Date(j.clientForm.createdAt).getMonth() === now.getMonth() - 1 && new Date(j.clientForm.createdAt).getFullYear() === now.getFullYear());
+  const completed = jobs.filter(j => j.status === "complete").length;
+  const total = jobs.length;
+  const percentComplete = total ? Math.round((completed / total) * 100) : 0;
+  const jobsByStatus = jobs.reduce((acc, job) => {
+    acc[job.status] = (acc[job.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // --- Past Reports Search & Filter ---
   const filteredJobs = jobs.filter(j =>
-    j.clientName.toLowerCase().includes(search.toLowerCase()) ||
-    (j.assetDetails?.landTitle || "").toLowerCase().includes(search.toLowerCase()) ||
-    (j.assetDetails?.regNo || "").toLowerCase().includes(search.toLowerCase())
+    (statusFilter === "all" || j.status === statusFilter) &&
+    (j.clientName.toLowerCase().includes(search.toLowerCase()) ||
+      (j.assetDetails?.landTitle || "").toLowerCase().includes(search.toLowerCase()) ||
+      (j.assetDetails?.regNo || "").toLowerCase().includes(search.toLowerCase()))
   );
   const selectedJob = jobs.find(j => j.id === selectedJobId);
 
@@ -221,16 +240,88 @@ export default function MDDashboard() {
             </CardContent>
           </Card>
         </Box>
-        {/* --- Past Reports Retrieval --- */}
+        {/* --- Advanced Business & Employee Statistics --- */}
+        <Box mb={4}>
+          <Typography variant="h5" fontWeight={700} mb={2}><BarChartIcon sx={{ mr: 1, mb: -0.5 }} />Advanced Business Insights</Typography>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={3} mb={2}>
+            <Card sx={{ minWidth: 220, bgcolor: '#e3f2fd' }}>
+              <CardContent>
+                <Typography variant="h6">Top Surveyor</Typography>
+                {topSurveyor ? <Typography variant="body2">{topSurveyor[0]}: {topSurveyor[1]} jobs</Typography> : <Typography variant="body2">No data</Typography>}
+              </CardContent>
+            </Card>
+            <Card sx={{ minWidth: 220, bgcolor: '#ede7f6' }}>
+              <CardContent>
+                <Typography variant="h6">Top QA</Typography>
+                {topQA ? <Typography variant="body2">{topQA[0]}: {topQA[1]} jobs</Typography> : <Typography variant="body2">No data</Typography>}
+              </CardContent>
+            </Card>
+            <Card sx={{ minWidth: 220, bgcolor: '#fff3e0' }}>
+              <CardContent>
+                <Typography variant="h6">Top MD</Typography>
+                {topMD ? <Typography variant="body2">{topMD[0]}: {topMD[1]} jobs</Typography> : <Typography variant="body2">No data</Typography>}
+              </CardContent>
+            </Card>
+            <Card sx={{ minWidth: 220, bgcolor: '#e1f5fe' }}>
+              <CardContent>
+                <Typography variant="h6">Most Pending Client</Typography>
+                {mostPendingClient ? <Typography variant="body2">{mostPendingClient[0]}: {mostPendingClient[1]} pending</Typography> : <Typography variant="body2">No data</Typography>}
+              </CardContent>
+            </Card>
+          </Stack>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={3} mb={2}>
+            <Card sx={{ minWidth: 220, bgcolor: '#e8f5e9' }}>
+              <CardContent>
+                <Typography variant="h6">Jobs This Month</Typography>
+                <Typography variant="body2">{jobsThisMonth.length}</Typography>
+              </CardContent>
+            </Card>
+            <Card sx={{ minWidth: 220, bgcolor: '#fffde7' }}>
+              <CardContent>
+                <Typography variant="h6">Jobs Last Month</Typography>
+                <Typography variant="body2">{jobsLastMonth.length}</Typography>
+              </CardContent>
+            </Card>
+            <Card sx={{ minWidth: 220, bgcolor: '#fce4ec' }}>
+              <CardContent>
+                <Typography variant="h6">% Completed</Typography>
+                <Typography variant="body2">{percentComplete}%</Typography>
+              </CardContent>
+            </Card>
+            <Card sx={{ minWidth: 220, bgcolor: '#e1f5fe' }}>
+              <CardContent>
+                <Typography variant="h6">Jobs by Status</Typography>
+                {Object.entries(jobsByStatus).map(([status, count]) => (
+                  <Typography key={status} variant="body2">{status}: {count}</Typography>
+                ))}
+              </CardContent>
+            </Card>
+          </Stack>
+        </Box>
+        {/* --- Enhanced Past Reports Retrieval --- */}
         <Box mb={4}>
           <Typography variant="h5" fontWeight={700} mb={2}><SearchIcon sx={{ mr: 1, mb: -0.5 }} />Retrieve Past Reports</Typography>
-          <TextField
-            label="Search by client, land title, or reg. number"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            fullWidth
-            sx={{ mb: 2, maxWidth: 500 }}
-          />
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
+            <TextField
+              label="Search by client, land title, or reg. number"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              sx={{ maxWidth: 400 }}
+            />
+            <TextField
+              select
+              label="Status"
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              sx={{ minWidth: 180 }}
+              SelectProps={{ native: true }}
+            >
+              <option value="all">All</option>
+              {Array.from(new Set(jobs.map(j => j.status))).map(status => (
+                <option key={status} value={status}>{status}</option>
+              ))}
+            </TextField>
+          </Stack>
           <Paper sx={{ maxHeight: 200, overflow: 'auto', mb: 2 }}>
             {filteredJobs.length === 0 ? (
               <Typography sx={{ p: 2 }} color="text.secondary">No matching jobs found.</Typography>
@@ -243,7 +334,7 @@ export default function MDDashboard() {
                 >
                   <Typography fontWeight={600}>{job.clientName} ({job.assetType.toUpperCase()})</Typography>
                   <Typography variant="body2" color="text.secondary">Land Title: {job.assetDetails.landTitle || '-'} | Reg No: {job.assetDetails.regNo || '-'}</Typography>
-                  <Typography variant="caption" color="text.secondary">Status: {job.status}</Typography>
+                  <Typography variant="caption" color="text.secondary">Status: {job.status} | Created: {job.clientForm?.createdAt ? format(parseISO(job.clientForm.createdAt), 'yyyy-MM-dd') : '-'}</Typography>
                 </Box>
               ))
             )}
@@ -258,6 +349,7 @@ export default function MDDashboard() {
                 <Typography key={k} variant="body2">{k.charAt(0).toUpperCase() + k.slice(1)}: {v}</Typography>
               ))}
               <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {selectedJob.clientForm?.createdBy || 'Admin'}</Typography>
+              <Typography variant="body2">Created: {selectedJob.clientForm?.createdAt ? format(parseISO(selectedJob.clientForm.createdAt), 'yyyy-MM-dd HH:mm') : '-'}</Typography>
               {selectedJob.fieldReport && (
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="subtitle2" fontWeight={700}>Field Report</Typography>
@@ -278,6 +370,10 @@ export default function MDDashboard() {
                   <Typography variant="body2">{selectedJob.mdApproval}</Typography>
                   <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {selectedJob.chain.md || 'Managing Director'}</Typography>
                 </Box>
+              )}
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Payment Received: {selectedJob.paymentReceived ? 'Yes' : 'No'}</Typography>
+              {selectedJob.revocationReason && (
+                <Typography variant="body2" color="error" sx={{ mt: 1 }}>Revocation Reason: {selectedJob.revocationReason}</Typography>
               )}
             </Paper>
           )}

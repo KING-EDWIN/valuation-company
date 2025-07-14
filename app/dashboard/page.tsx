@@ -1,5 +1,5 @@
 "use client";
-import { Box, Typography, Button, Paper, Stack, Card, CardContent, Avatar, Chip, Fade, Grow, Tooltip } from "@mui/material";
+import { Box, Typography, Button, Paper, Stack, Card, CardContent, Avatar, Chip, Fade, Grow } from "@mui/material";
 import { useUser } from "../../components/UserContext";
 import { useJobs, AssetType } from "../../components/JobsContext";
 import { useRouter } from "next/navigation";
@@ -72,12 +72,6 @@ export default function Dashboard() {
   // Field Team: Field report upload state
   const [uploadingJobId, setUploadingJobId] = useState<string | null>(null);
   const [fieldReportFile, setFieldReportFile] = useState<File | null>(null);
-
-  // QA: Approve/revoke state
-  const [qaActionJobId, setQaActionJobId] = useState<string | null>(null);
-
-  // Accounts: Payment state
-  const [payingJobId, setPayingJobId] = useState<string | null>(null);
 
   // Helper: Render client form fields
   const renderClientFormFields = (assetType: string) => assetType === 'land' ? (
@@ -283,7 +277,7 @@ export default function Dashboard() {
                   <option value="car">Car</option>
                 </select>
                 {renderClientFormFields(newClient.assetType)}
-                <Button variant="contained" color="success" onClick={() => { addJob({ ...newClient, assetType: newClient.assetType as AssetType }); setShowClientForm(false); }}>
+                <Button variant="contained" color="success" onClick={() => { addJob({ ...newClient, assetType: newClient.assetType as AssetType, createdBy: user.role }); setShowClientForm(false); }}>
                   Submit Client
                 </Button>
               </Stack>

@@ -16,7 +16,7 @@ export default function Home() {
   const router = useRouter();
 
   const handleLogin = (role: string) => {
-    login(role as any);
+    login(role as "admin" | "field_team" | "qa_officer" | "md" | "accounts");
     router.push("/dashboard");
   };
 
