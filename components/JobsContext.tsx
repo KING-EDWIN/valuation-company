@@ -15,15 +15,21 @@ export interface Job {
     md?: string;
     accounts?: string;
   };
+  clientForm: {
+    createdBy: string;
+    createdAt?: string;
+  };
   fieldReport?: string;
+  fieldReportBy?: string;
   qaNotes?: string;
   mdApproval?: string;
   paymentReceived?: boolean;
+  revocationReason?: string;
 }
 
 interface JobsContextType {
   jobs: Job[];
-  addJob: (job: Omit<Job, "id" | "status" | "chain" | "fieldReport" | "qaNotes" | "mdApproval" | "paymentReceived">) => void;
+  addJob: (job: Omit<Job, "id" | "status" | "chain" | "fieldReport" | "fieldReportBy" | "qaNotes" | "mdApproval" | "paymentReceived" | "clientForm"> & { createdBy: string }) => void;
   updateJob: (id: string, update: Partial<Job>) => void;
 }
 
@@ -43,10 +49,16 @@ export function JobsProvider({ children }: { children: ReactNode }) {
         qa: "Sarah QA Officer",
         md: "Dr. Michael Director"
       },
+      clientForm: {
+        createdBy: "Admin Jane",
+        createdAt: "2024-06-01T09:00:00Z"
+      },
       fieldReport: "Site inspection completed. Land is in good condition with proper access roads. GPS coordinates recorded. Photos taken of all boundaries. Soil samples collected for analysis. No encroachments detected.",
+      fieldReportBy: "John Surveyor",
       qaNotes: "Field report is comprehensive and accurate. All measurements verified. Photos are clear and properly documented. GPS coordinates match official records. Report approved for MD review.",
       mdApproval: "Approved",
-      paymentReceived: false
+      paymentReceived: false,
+      revocationReason: undefined
     },
     {
       id: "job-2", 
@@ -57,10 +69,16 @@ export function JobsProvider({ children }: { children: ReactNode }) {
       chain: {
         surveyor: "Alice Field Inspector"
       },
+      clientForm: {
+        createdBy: "Admin Jane",
+        createdAt: "2024-06-02T10:00:00Z"
+      },
       fieldReport: "Vehicle inspection completed. Engine runs smoothly, no major damage detected. Mileage verified at 45,000 km. Interior in good condition. All documents present and valid. Photos taken of all sides and engine compartment.",
-      qaNotes: undefined,
+      fieldReportBy: "Alice Field Inspector",
+      qaNotes: "QA: All checks passed. Ready for MD review.",
       mdApproval: undefined,
-      paymentReceived: false
+      paymentReceived: false,
+      revocationReason: undefined
     },
     {
       id: "job-3",
@@ -69,10 +87,16 @@ export function JobsProvider({ children }: { children: ReactNode }) {
       assetDetails: { location: "Entebbe", landTitle: "LT5678", plotNo: "12B", size: "1.5", make: "", model: "", regNo: "", year: "" },
       status: "pending fieldwork",
       chain: {},
+      clientForm: {
+        createdBy: "Admin Jane",
+        createdAt: "2024-06-03T11:00:00Z"
+      },
       fieldReport: undefined,
+      fieldReportBy: undefined,
       qaNotes: undefined,
       mdApproval: undefined,
-      paymentReceived: false
+      paymentReceived: false,
+      revocationReason: undefined
     },
     {
       id: "job-4",
@@ -84,10 +108,16 @@ export function JobsProvider({ children }: { children: ReactNode }) {
         surveyor: "David Field Team",
         qa: "Maria Quality Assurance"
       },
+      clientForm: {
+        createdBy: "Admin Jane",
+        createdAt: "2024-06-04T12:00:00Z"
+      },
       fieldReport: "Comprehensive land survey completed. Property boundaries clearly marked. Soil quality assessment done. Environmental impact minimal. All regulatory requirements met. Detailed measurements and photos included.",
-      qaNotes: "Excellent field work. All documentation is thorough and accurate. Measurements verified against official records. Photos are high quality and comprehensive. No issues found. Ready for MD approval.",
+      fieldReportBy: "David Field Team",
+      qaNotes: "QA: Excellent work. Ready for MD approval.",
       mdApproval: undefined,
-      paymentReceived: false
+      paymentReceived: false,
+      revocationReason: undefined
     },
     {
       id: "job-5",
@@ -101,14 +131,38 @@ export function JobsProvider({ children }: { children: ReactNode }) {
         md: "Dr. Michael Director",
         accounts: "Finance Team"
       },
+      clientForm: {
+        createdBy: "Admin Jane",
+        createdAt: "2024-06-05T13:00:00Z"
+      },
       fieldReport: "Vehicle in excellent condition. Low mileage at 25,000 km. All systems functioning properly. Recent service history verified. Market value assessment completed.",
-      qaNotes: "Vehicle inspection report is accurate and complete. All documentation verified. Market analysis is sound. Ready for final approval.",
+      fieldReportBy: "Peter Vehicle Inspector",
+      qaNotes: "QA: All documentation verified. Ready for final approval.",
       mdApproval: "Approved for payment",
-      paymentReceived: true
+      paymentReceived: true,
+      revocationReason: undefined
+    },
+    {
+      id: "job-demo-1",
+      clientName: "Demo Client",
+      assetType: "land",
+      assetDetails: { location: "Kampala", landTitle: "LT0001", plotNo: "1A", size: "1", make: "", model: "", regNo: "", year: "" },
+      status: "pending fieldwork",
+      chain: {},
+      clientForm: {
+        createdBy: "Admin Jane",
+        createdAt: "2024-06-10T09:00:00Z"
+      },
+      fieldReport: undefined,
+      fieldReportBy: undefined,
+      qaNotes: undefined,
+      mdApproval: undefined,
+      paymentReceived: false,
+      revocationReason: undefined
     }
   ]);
 
-  const addJob = (job: Omit<Job, "id" | "status" | "chain" | "fieldReport" | "qaNotes" | "mdApproval" | "paymentReceived">) => {
+  const addJob = (job: Omit<Job, "id" | "status" | "chain" | "fieldReport" | "fieldReportBy" | "qaNotes" | "mdApproval" | "paymentReceived" | "clientForm"> & { createdBy: string }) => {
     setJobs(jobs => [
       ...jobs,
       {
@@ -116,10 +170,16 @@ export function JobsProvider({ children }: { children: ReactNode }) {
         id: Math.random().toString(36).slice(2),
         status: "pending fieldwork",
         chain: {},
-        fieldReport: undefined,
+        clientForm: {
+          createdBy: job.createdBy,
+          createdAt: new Date().toISOString(),
+        },
+              fieldReport: undefined,
+        fieldReportBy: undefined,
         qaNotes: undefined,
         mdApproval: undefined,
         paymentReceived: false,
+        revocationReason: undefined
       },
     ]);
   };

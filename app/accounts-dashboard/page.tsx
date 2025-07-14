@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Box, Typography, Paper, Button, Alert, Stack, Card, CardContent, Avatar, Chip, Fade, Grow } from "@mui/material";
+import { Box, Typography, Paper, Button, Alert, Stack, Card, CardContent, Avatar, Chip, Fade, Grow, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { useJobs } from "../../components/JobsContext";
 import { useNotifications } from "../../components/NotificationsContext";
 import PaidIcon from '@mui/icons-material/Paid';
@@ -11,6 +11,10 @@ export default function AccountsDashboard() {
   const { jobs, updateJob, addJob } = useJobs();
   const { notifications, clearNotifications } = useNotifications();
   const [submitted, setSubmitted] = useState<Record<string, boolean>>({});
+  const [openFormJobId, setOpenFormJobId] = useState<string | null>(null);
+  const [openReportJobId, setOpenReportJobId] = useState<string | null>(null);
+  const [openQaJobId, setOpenQaJobId] = useState<string | null>(null);
+  const [openMdJobId, setOpenMdJobId] = useState<string | null>(null);
 
   useEffect(() => { clearNotifications("accounts"); }, [clearNotifications]);
 
@@ -20,11 +24,13 @@ export default function AccountsDashboard() {
       clientName: "Demo Bank",
       assetType: "land",
       assetDetails: { location: "Jinja", landTitle: "LT9999", plotNo: "99C", size: "3", make: "", model: "", regNo: "", year: "" },
+      createdBy: "Demo Admin"
     });
     addJob({
       clientName: "Demo Motors",
       assetType: "car",
       assetDetails: { location: "", landTitle: "", plotNo: "", size: "", make: "Honda", model: "Civic", regNo: "UBB456Y", year: "2020" },
+      createdBy: "Demo Admin"
     });
   };
 
@@ -246,6 +252,56 @@ export default function AccountsDashboard() {
                     </Stack>
                   </Box>
                 </Box>
+                <Stack direction="row" spacing={2} mb={2}>
+                  <Button variant="outlined" onClick={() => setOpenFormJobId(job.id)} sx={{ fontWeight: 600 }}>View Client Form</Button>
+                  <Button variant="outlined" onClick={() => setOpenReportJobId(job.id)} sx={{ fontWeight: 600 }}>View Field Report</Button>
+                  <Button variant="outlined" onClick={() => setOpenQaJobId(job.id)} sx={{ fontWeight: 600 }}>View QA Notes</Button>
+                  <Button variant="outlined" onClick={() => setOpenMdJobId(job.id)} sx={{ fontWeight: 600 }}>View MD Approval</Button>
+                </Stack>
+                <Dialog open={openFormJobId === job.id} onClose={() => setOpenFormJobId(null)} maxWidth="sm" fullWidth>
+                  <DialogTitle>Client Form</DialogTitle>
+                  <DialogContent>
+                    <Typography variant="subtitle1" fontWeight={600}>Client Name: {job.clientName}</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}>Asset Type: {job.assetType.toUpperCase()}</Typography>
+                    {Object.entries(job.assetDetails).map(([k, v]) => v && (
+                      <Typography key={k} variant="body2">{k.charAt(0).toUpperCase() + k.slice(1)}: {v}</Typography>
+                    ))}
+                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>Prepared by: {job.clientForm?.createdBy || 'Admin'}</Typography>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setOpenFormJobId(null)}>Close</Button>
+                  </DialogActions>
+                </Dialog>
+                <Dialog open={openReportJobId === job.id} onClose={() => setOpenReportJobId(null)} maxWidth="sm" fullWidth>
+                  <DialogTitle>Field Report</DialogTitle>
+                  <DialogContent>
+                    <Typography variant="body2" sx={{ mb: 1 }}>{job.fieldReport || 'No report uploaded yet.'}</Typography>
+                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>Prepared by: {job.fieldReportBy || job.chain.surveyor || 'Field Team'}</Typography>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setOpenReportJobId(null)}>Close</Button>
+                  </DialogActions>
+                </Dialog>
+                <Dialog open={openQaJobId === job.id} onClose={() => setOpenQaJobId(null)} maxWidth="sm" fullWidth>
+                  <DialogTitle>QA Notes</DialogTitle>
+                  <DialogContent>
+                    <Typography variant="body2" sx={{ mb: 1 }}>{job.qaNotes || 'No QA notes yet.'}</Typography>
+                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>Prepared by: {job.chain.qa || 'QA Officer'}</Typography>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setOpenQaJobId(null)}>Close</Button>
+                  </DialogActions>
+                </Dialog>
+                <Dialog open={openMdJobId === job.id} onClose={() => setOpenMdJobId(null)} maxWidth="sm" fullWidth>
+                  <DialogTitle>MD Approval</DialogTitle>
+                  <DialogContent>
+                    <Typography variant="body2" sx={{ mb: 1 }}>{job.mdApproval || 'No MD approval yet.'}</Typography>
+                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>Prepared by: {job.chain.md || 'Managing Director'}</Typography>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setOpenMdJobId(null)}>Close</Button>
+                  </DialogActions>
+                </Dialog>
                 <Button
                   variant="contained"
                   disabled={submitted[job.id]}
@@ -373,6 +429,56 @@ export default function AccountsDashboard() {
                     </Stack>
                   </Box>
                 </Box>
+                <Stack direction="row" spacing={2} mb={2}>
+                  <Button variant="outlined" onClick={() => setOpenFormJobId(job.id)} sx={{ fontWeight: 600 }}>View Client Form</Button>
+                  <Button variant="outlined" onClick={() => setOpenReportJobId(job.id)} sx={{ fontWeight: 600 }}>View Field Report</Button>
+                  <Button variant="outlined" onClick={() => setOpenQaJobId(job.id)} sx={{ fontWeight: 600 }}>View QA Notes</Button>
+                  <Button variant="outlined" onClick={() => setOpenMdJobId(job.id)} sx={{ fontWeight: 600 }}>View MD Approval</Button>
+                </Stack>
+                <Dialog open={openFormJobId === job.id} onClose={() => setOpenFormJobId(null)} maxWidth="sm" fullWidth>
+                  <DialogTitle>Client Form</DialogTitle>
+                  <DialogContent>
+                    <Typography variant="subtitle1" fontWeight={600}>Client Name: {job.clientName}</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}>Asset Type: {job.assetType.toUpperCase()}</Typography>
+                    {Object.entries(job.assetDetails).map(([k, v]) => v && (
+                      <Typography key={k} variant="body2">{k.charAt(0).toUpperCase() + k.slice(1)}: {v}</Typography>
+                    ))}
+                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>Prepared by: {job.clientForm?.createdBy || 'Admin'}</Typography>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setOpenFormJobId(null)}>Close</Button>
+                  </DialogActions>
+                </Dialog>
+                <Dialog open={openReportJobId === job.id} onClose={() => setOpenReportJobId(null)} maxWidth="sm" fullWidth>
+                  <DialogTitle>Field Report</DialogTitle>
+                  <DialogContent>
+                    <Typography variant="body2" sx={{ mb: 1 }}>{job.fieldReport || 'No report uploaded yet.'}</Typography>
+                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>Prepared by: {job.fieldReportBy || job.chain.surveyor || 'Field Team'}</Typography>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setOpenReportJobId(null)}>Close</Button>
+                  </DialogActions>
+                </Dialog>
+                <Dialog open={openQaJobId === job.id} onClose={() => setOpenQaJobId(null)} maxWidth="sm" fullWidth>
+                  <DialogTitle>QA Notes</DialogTitle>
+                  <DialogContent>
+                    <Typography variant="body2" sx={{ mb: 1 }}>{job.qaNotes || 'No QA notes yet.'}</Typography>
+                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>Prepared by: {job.chain.qa || 'QA Officer'}</Typography>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setOpenQaJobId(null)}>Close</Button>
+                  </DialogActions>
+                </Dialog>
+                <Dialog open={openMdJobId === job.id} onClose={() => setOpenMdJobId(null)} maxWidth="sm" fullWidth>
+                  <DialogTitle>MD Approval</DialogTitle>
+                  <DialogContent>
+                    <Typography variant="body2" sx={{ mb: 1 }}>{job.mdApproval || 'No MD approval yet.'}</Typography>
+                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>Prepared by: {job.chain.md || 'Managing Director'}</Typography>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setOpenMdJobId(null)}>Close</Button>
+                  </DialogActions>
+                </Dialog>
               </Stack>
             </Paper>
           </Grow>

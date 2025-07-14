@@ -50,14 +50,14 @@ export default function ClientAcquisitionPage() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    addJob({ clientName, assetType, assetDetails });
+    addJob({ clientName, assetType, assetDetails, createdBy: "Admin Jane" });
     setSubmitted(true);
     setClientName("");
     setAssetDetails({});
   };
 
   const handleLoadDemo = () => {
-    demoJobs.forEach(job => addJob(job));
+    demoJobs.forEach(job => addJob({ ...job, createdBy: "Admin Jane" }));
   };
 
   // Add more comprehensive demo data
@@ -79,7 +79,7 @@ export default function ClientAcquisitionPage() {
         assetDetails: { location: "Masaka", landTitle: "LT2222", plotNo: "33E", size: "1.8", make: "", model: "", regNo: "", year: "" },
       }
     ];
-    fullDemoJobs.forEach(job => addJob(job));
+    fullDemoJobs.forEach(job => addJob({ ...job, createdBy: "Admin Jane" }));
   };
 
   const fields = assetType === "land" ? landFields : carFields;

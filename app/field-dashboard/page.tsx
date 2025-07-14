@@ -12,6 +12,8 @@ export default function FieldDashboard() {
   const { notifications, clearNotifications, addNotification } = useNotifications();
   const [report, setReport] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState<Record<string, boolean>>({});
+  const [openFormJobId, setOpenFormJobId] = useState<string | null>(null);
+  const [formViewed, setFormViewed] = useState<Record<string, boolean>>({});
 
   // Clear notifications for field team on mount
   useEffect(() => { clearNotifications("field_team"); }, [clearNotifications]);
@@ -177,7 +179,38 @@ export default function FieldDashboard() {
                     />
                   </Box>
                 </Stack>
-                
+                {/* Always show all job details inline */}
+                <Box sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+                  <Typography variant="subtitle2" fontWeight={700}>Client Form</Typography>
+                  <Typography variant="body2">Client Name: {job.clientName}</Typography>
+                  <Typography variant="body2">Asset Type: {job.assetType.toUpperCase()}</Typography>
+                  {Object.entries(job.assetDetails).map(([k, v]) => v && (
+                    <Typography key={k} variant="body2">{k.charAt(0).toUpperCase() + k.slice(1)}: {v}</Typography>
+                  ))}
+                  <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {job.clientForm?.createdBy || 'Admin'}</Typography>
+                </Box>
+                {job.fieldReport && (
+                  <Box sx={{ mb: 2, p: 2, bgcolor: '#e3f2fd', borderRadius: 2 }}>
+                    <Typography variant="subtitle2" fontWeight={700}>Field Report</Typography>
+                    <Typography variant="body2">{job.fieldReport}</Typography>
+                    <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {job.fieldReportBy || job.chain.surveyor || 'Field Team'}</Typography>
+                  </Box>
+                )}
+                {job.qaNotes && (
+                  <Box sx={{ mb: 2, p: 2, bgcolor: '#ede7f6', borderRadius: 2 }}>
+                    <Typography variant="subtitle2" fontWeight={700}>QA Notes</Typography>
+                    <Typography variant="body2">{job.qaNotes}</Typography>
+                    <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {job.chain.qa || 'QA Officer'}</Typography>
+                  </Box>
+                )}
+                {job.mdApproval && (
+                  <Box sx={{ mb: 2, p: 2, bgcolor: '#ffebee', borderRadius: 2 }}>
+                    <Typography variant="subtitle2" fontWeight={700}>MD Approval</Typography>
+                    <Typography variant="body2">{job.mdApproval}</Typography>
+                    <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {job.chain.md || 'Managing Director'}</Typography>
+                  </Box>
+                )}
+                {/* Field Report input and submit button remain as before */}
                 <TextField
                   label="Field Report"
                   value={report[job.id] || ""}
@@ -188,7 +221,6 @@ export default function FieldDashboard() {
                   sx={{ mb: 3 }}
                   placeholder="Enter detailed field inspection findings, measurements, photos taken, and any observations..."
                 />
-                
                 <Button
                   variant="contained"
                   disabled={submitted[job.id] || !report[job.id]}
@@ -210,7 +242,6 @@ export default function FieldDashboard() {
                 >
                   Submit Report
                 </Button>
-                
                 {submitted[job.id] && (
                   <Fade in timeout={500}>
                     <Alert severity="success" sx={{ mt: 3, borderRadius: 2 }}>

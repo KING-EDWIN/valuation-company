@@ -35,8 +35,8 @@ export default function RootLayout({
           <NotificationsProvider>
             <JobsProvider>
               <MuiProvider>
-                <NavBar />
-                <Box sx={{ pt: 8 }}>
+                {/* NavBar removed */}
+                <Box sx={{ pt: 0 }}>
                   {children}
                 </Box>
               </MuiProvider>

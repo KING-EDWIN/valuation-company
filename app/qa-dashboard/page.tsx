@@ -12,6 +12,7 @@ export default function QADashboard() {
   const { notifications, clearNotifications, addNotification } = useNotifications();
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState<Record<string, boolean>>({});
+  const [revokeReason, setRevokeReason] = useState<Record<string, string>>({});
 
   useEffect(() => { clearNotifications("qa_officer"); }, [clearNotifications]);
 
@@ -22,6 +23,7 @@ export default function QADashboard() {
       status: "pending MD approval",
       qaNotes: notes[id],
       chain: { qa: "QA Officer" },
+      revocationReason: undefined
     });
     addNotification("md", "New job ready for MD approval!", id);
     setSubmitted(s => ({ ...s, [id]: true }));
@@ -32,10 +34,12 @@ export default function QADashboard() {
     updateJob(id, {
       status: "pending fieldwork",
       qaNotes: notes[id],
+      revocationReason: revokeReason[id] || "No reason provided."
     });
     addNotification("field_team", "Job sent back for more fieldwork.", id);
     setSubmitted(s => ({ ...s, [id]: true }));
     setNotes(n => ({ ...n, [id]: "" }));
+    setRevokeReason(r => ({ ...r, [id]: "" }));
   };
 
   return (
@@ -183,16 +187,38 @@ export default function QADashboard() {
                     />
                   </Box>
                 </Stack>
-                
-                <Paper sx={{ p: 3, mb: 3, bgcolor: '#f8f9fa', borderRadius: 2 }}>
-                  <Typography variant="subtitle2" fontWeight={600} color="text.secondary" gutterBottom>
-                    Field Report:
-                  </Typography>
-                  <Typography variant="body2" color="text.primary">
-                    {job.fieldReport}
-                  </Typography>
-                </Paper>
-                
+                {/* Always show all job details inline */}
+                <Box sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+                  <Typography variant="subtitle2" fontWeight={700}>Client Form</Typography>
+                  <Typography variant="body2">Client Name: {job.clientName}</Typography>
+                  <Typography variant="body2">Asset Type: {job.assetType.toUpperCase()}</Typography>
+                  {Object.entries(job.assetDetails).map(([k, v]) => v && (
+                    <Typography key={k} variant="body2">{k.charAt(0).toUpperCase() + k.slice(1)}: {v}</Typography>
+                  ))}
+                  <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {job.clientForm?.createdBy || 'Admin'}</Typography>
+                </Box>
+                {job.fieldReport && (
+                  <Box sx={{ mb: 2, p: 2, bgcolor: '#e3f2fd', borderRadius: 2 }}>
+                    <Typography variant="subtitle2" fontWeight={700}>Field Report</Typography>
+                    <Typography variant="body2">{job.fieldReport}</Typography>
+                    <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {job.fieldReportBy || job.chain.surveyor || 'Field Team'}</Typography>
+                  </Box>
+                )}
+                {job.qaNotes && (
+                  <Box sx={{ mb: 2, p: 2, bgcolor: '#ede7f6', borderRadius: 2 }}>
+                    <Typography variant="subtitle2" fontWeight={700}>QA Notes</Typography>
+                    <Typography variant="body2">{job.qaNotes}</Typography>
+                    <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {job.chain.qa || 'QA Officer'}</Typography>
+                  </Box>
+                )}
+                {job.mdApproval && (
+                  <Box sx={{ mb: 2, p: 2, bgcolor: '#ffebee', borderRadius: 2 }}>
+                    <Typography variant="subtitle2" fontWeight={700}>MD Approval</Typography>
+                    <Typography variant="body2">{job.mdApproval}</Typography>
+                    <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {job.chain.md || 'Managing Director'}</Typography>
+                  </Box>
+                )}
+                {/* QA Notes input and action buttons remain as before */}
                 <TextField
                   label="QA Notes"
                   value={notes[job.id] || ""}
@@ -203,7 +229,6 @@ export default function QADashboard() {
                   sx={{ mb: 3 }}
                   placeholder="Enter QA validation notes, accuracy checks, and any recommendations..."
                 />
-                
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                   <Button
                     variant="contained"
@@ -247,10 +272,17 @@ export default function QADashboard() {
                       }
                     }}
                   >
-                    Reject & Return to Field
+                    Revoke & Return to Field Team
                   </Button>
+                  <TextField
+                    label="Revocation Reason"
+                    value={revokeReason[job.id] || ""}
+                    onChange={e => setRevokeReason(r => ({ ...r, [job.id]: e.target.value }))}
+                    size="small"
+                    sx={{ minWidth: 200 }}
+                    disabled={submitted[job.id]}
+                  />
                 </Stack>
-                
                 {submitted[job.id] && (
                   <Fade in timeout={500}>
                     <Alert severity="success" sx={{ mt: 3, borderRadius: 2 }}>

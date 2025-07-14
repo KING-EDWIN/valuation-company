@@ -1,50 +1,51 @@
 "use client";
-import { Box, Typography, Button, Paper, Stack, Card, CardContent, Avatar, Chip, Fade, Grow } from "@mui/material";
+import { Box, Typography, Button, Paper, Stack, Card, CardContent, Avatar, Chip, Fade, Grow, Tooltip } from "@mui/material";
 import { useUser } from "../../components/UserContext";
-import { useJobs } from "../../components/JobsContext";
+import { useJobs, AssetType } from "../../components/JobsContext";
 import { useRouter } from "next/navigation";
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ScheduleIcon from '@mui/icons-material/Schedule';
+import LogoutIcon from '@mui/icons-material/Logout';
+import { useRef, useState } from "react";
 
 const rolePages: Record<string, { label: string; path: string }[]> = {
-  system_manager: [
-    { label: "System Manager Dashboard", path: "/system-manager-dashboard" },
-    { label: "Client Acquisition", path: "/client-acquisition" },
+  admin: [
+    { label: "Admin Dashboard", path: "/dashboard" },
   ],
   field_team: [
-    { label: "Field Team Dashboard", path: "/field-dashboard" },
+    { label: "Field Team Dashboard", path: "/dashboard" },
   ],
   qa_officer: [
-    { label: "QA Dashboard", path: "/qa-dashboard" },
+    { label: "QA Dashboard", path: "/dashboard" },
   ],
   md: [
-    { label: "MD Dashboard", path: "/md-dashboard" },
+    { label: "MD Dashboard", path: "/dashboard" },
   ],
   accounts: [
-    { label: "Accounts Dashboard", path: "/accounts-dashboard" },
+    { label: "Accounts Dashboard", path: "/dashboard" },
   ],
 };
 
 const roleColors: Record<string, string> = {
-  system_manager: '#1976d2',
+  admin: '#1976d2',
   field_team: '#00897b',
   qa_officer: '#7c3aed',
   md: '#e53935',
   accounts: '#6d4c41',
 };
 
-const roleGradients: Record<string, string> = {
-  system_manager: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
-  field_team: 'linear-gradient(135deg, #00897b 0%, #4db6ac 100%)',
-  qa_officer: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
-  md: 'linear-gradient(135deg, #e53935 0%, #ef5350 100%)',
-  accounts: 'linear-gradient(135deg, #6d4c41 0%, #8d6e63 100%)',
+const cardColors: Record<string, string[]> = {
+  admin: ['#2196f3', '#ff9800', '#43a047'],
+  field_team: ['#26a69a', '#ffa726', '#66bb6a'],
+  qa_officer: ['#7c3aed', '#ffd600', '#43a047'],
+  md: ['#e53935', '#ffb300', '#43a047'],
+  accounts: ['#6d4c41', '#ffb300', '#43a047'],
 };
 
 export default function Dashboard() {
-  const { user } = useUser();
-  const { jobs } = useJobs();
+  const { user, logout } = useUser();
+  const { jobs, updateJob, addJob } = useJobs();
   const router = useRouter();
   if (!user) return null;
   const pages = rolePages[user.role] || [];
@@ -61,15 +62,61 @@ export default function Dashboard() {
   if (user.role === "md") relevantJobs = jobs.filter(j => j.status === "pending MD approval");
   if (user.role === "accounts") relevantJobs = jobs.filter(j => j.status === "pending payment");
 
+  const [primary, warning, success] = cardColors[user.role] || ['#1976d2', '#ff9800', '#43a047'];
+
+  // Admin: Add new client form state
+  const [showClientForm, setShowClientForm] = useState(false);
+  const [newClient, setNewClient] = useState({ clientName: '', assetType: 'land', assetDetails: { location: '', landTitle: '', plotNo: '', size: '', make: '', model: '', regNo: '', year: '' } });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Field Team: Field report upload state
+  const [uploadingJobId, setUploadingJobId] = useState<string | null>(null);
+  const [fieldReportFile, setFieldReportFile] = useState<File | null>(null);
+
+  // QA: Approve/revoke state
+  const [qaActionJobId, setQaActionJobId] = useState<string | null>(null);
+
+  // Accounts: Payment state
+  const [payingJobId, setPayingJobId] = useState<string | null>(null);
+
+  // Helper: Render client form fields
+  const renderClientFormFields = (assetType: string) => assetType === 'land' ? (
+    <>
+      <input placeholder="Location" value={newClient.assetDetails.location} onChange={e => setNewClient(n => ({ ...n, assetDetails: { ...n.assetDetails, location: e.target.value } }))} />
+      <input placeholder="Land Title" value={newClient.assetDetails.landTitle} onChange={e => setNewClient(n => ({ ...n, assetDetails: { ...n.assetDetails, landTitle: e.target.value } }))} />
+      <input placeholder="Plot Number" value={newClient.assetDetails.plotNo} onChange={e => setNewClient(n => ({ ...n, assetDetails: { ...n.assetDetails, plotNo: e.target.value } }))} />
+      <input placeholder="Size (acres)" value={newClient.assetDetails.size} onChange={e => setNewClient(n => ({ ...n, assetDetails: { ...n.assetDetails, size: e.target.value } }))} />
+    </>
+  ) : (
+    <>
+      <input placeholder="Make" value={newClient.assetDetails.make} onChange={e => setNewClient(n => ({ ...n, assetDetails: { ...n.assetDetails, make: e.target.value } }))} />
+      <input placeholder="Model" value={newClient.assetDetails.model} onChange={e => setNewClient(n => ({ ...n, assetDetails: { ...n.assetDetails, model: e.target.value } }))} />
+      <input placeholder="Registration Number" value={newClient.assetDetails.regNo} onChange={e => setNewClient(n => ({ ...n, assetDetails: { ...n.assetDetails, regNo: e.target.value } }))} />
+      <input placeholder="Year" value={newClient.assetDetails.year} onChange={e => setNewClient(n => ({ ...n, assetDetails: { ...n.assetDetails, year: e.target.value } }))} />
+    </>
+  );
+
   return (
     <Box sx={{ 
       minHeight: '100vh', 
       background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
       py: 4
     }}>
-      {/* Hero Section */}
+      {/* Logout Button */}
+      <Box display="flex" justifyContent="flex-end" alignItems="center" px={4} mb={2}>
+        <Button
+          variant="outlined"
+          color="error"
+          startIcon={<LogoutIcon />}
+          onClick={() => { logout(); router.push("/"); }}
+          sx={{ fontWeight: 600, borderRadius: 2 }}
+        >
+          Logout
+        </Button>
+      </Box>
+      {/* Vibrant Hero Section */}
       <Box sx={{ 
-        background: roleGradients[user.role],
+        background: `linear-gradient(135deg, ${roleColors[user.role]} 0%, #42a5f5 100%)`,
         color: 'white',
         py: 6,
         px: 4,
@@ -77,48 +124,45 @@ export default function Dashboard() {
         mb: 4,
         textAlign: 'center',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.10)'
       }}>
-        <Box sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-          opacity: 0.3
-        }} />
         <Fade in timeout={1000}>
           <Box>
-            <Typography variant="h3" fontWeight={700} gutterBottom>
-              Welcome, {user.role.replace('_', ' ').toUpperCase()}
+            <Typography variant="h3" fontWeight={900} gutterBottom sx={{ letterSpacing: 1, textShadow: '0 2px 8px rgba(0,0,0,0.10)' }}>
+              Welcome, {user.role.toUpperCase()}
             </Typography>
-            <Typography variant="h6" sx={{ opacity: 0.9 }}>
+            <Typography variant="h6" sx={{ opacity: 0.95, fontWeight: 500, textShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
               Manage your valuation workflow efficiently
             </Typography>
           </Box>
         </Fade>
       </Box>
-
       <Box sx={{ px: 4 }}>
-        {/* Stats Cards */}
+        {/* Vibrant Stats Cards */}
         <Stack direction={{ xs: "column", sm: "row" }} spacing={3} mb={4} justifyContent="center">
           <Grow in timeout={800}>
             <Card sx={{ 
               minHeight: 140,
               minWidth: 200,
-              background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
-              borderRadius: 3,
+              background: primary,
+              borderRadius: 4,
+              color: 'white',
+              boxShadow: '0 4px 24px rgba(33,150,243,0.15)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
               transition: 'all 0.3s ease',
               '&:hover': {
                 transform: 'translateY(-4px)',
-                boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
+                boxShadow: '0 8px 25px rgba(33,150,243,0.25)'
               }
             }}>
               <CardContent sx={{ textAlign: 'center', py: 3 }}>
-                <AssignmentIcon sx={{ fontSize: 40, color: '#1976d2', mb: 1 }} />
-                <Typography variant="h6" color="text.secondary" gutterBottom>Total Jobs</Typography>
-                <Typography variant="h3" fontWeight={700} color="primary">{total}</Typography>
+                <AssignmentIcon sx={{ fontSize: 40, mb: 1 }} />
+                <Typography variant="h6" fontWeight={700} gutterBottom>Total Jobs</Typography>
+                <Typography variant="h3" fontWeight={900}>{total}</Typography>
               </CardContent>
             </Card>
           </Grow>
@@ -126,18 +170,24 @@ export default function Dashboard() {
             <Card sx={{ 
               minHeight: 140,
               minWidth: 200,
-              background: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)',
-              borderRadius: 3,
+              background: warning,
+              borderRadius: 4,
+              color: 'white',
+              boxShadow: '0 4px 24px rgba(255,152,0,0.15)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
               transition: 'all 0.3s ease',
               '&:hover': {
                 transform: 'translateY(-4px)',
-                boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
+                boxShadow: '0 8px 25px rgba(255,152,0,0.25)'
               }
             }}>
               <CardContent sx={{ textAlign: 'center', py: 3 }}>
-                <ScheduleIcon sx={{ fontSize: 40, color: '#f57c00', mb: 1 }} />
-                <Typography variant="h6" color="text.secondary" gutterBottom>Pending</Typography>
-                <Typography variant="h3" fontWeight={700} color="warning.main">{pending}</Typography>
+                <ScheduleIcon sx={{ fontSize: 40, mb: 1 }} />
+                <Typography variant="h6" fontWeight={700} gutterBottom>Pending</Typography>
+                <Typography variant="h3" fontWeight={900}>{pending}</Typography>
               </CardContent>
             </Card>
           </Grow>
@@ -145,42 +195,64 @@ export default function Dashboard() {
             <Card sx={{ 
               minHeight: 140,
               minWidth: 200,
-              background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
-              borderRadius: 3,
+              background: success,
+              borderRadius: 4,
+              color: 'white',
+              boxShadow: '0 4px 24px rgba(67,160,71,0.15)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
               transition: 'all 0.3s ease',
               '&:hover': {
                 transform: 'translateY(-4px)',
-                boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
+                boxShadow: '0 8px 25px rgba(67,160,71,0.25)'
               }
             }}>
               <CardContent sx={{ textAlign: 'center', py: 3 }}>
-                <CheckCircleIcon sx={{ fontSize: 40, color: '#2e7d32', mb: 1 }} />
-                <Typography variant="h6" color="text.secondary" gutterBottom>Completed</Typography>
-                <Typography variant="h3" fontWeight={700} color="success.main">{completed}</Typography>
+                <CheckCircleIcon sx={{ fontSize: 40, mb: 1 }} />
+                <Typography variant="h6" fontWeight={700} gutterBottom>Completed</Typography>
+                <Typography variant="h3" fontWeight={900}>{completed}</Typography>
               </CardContent>
             </Card>
           </Grow>
         </Stack>
-
-        {/* Quick Actions */}
-        <Paper sx={{ 
-          p: 4, 
-          mb: 4, 
-          borderRadius: 3,
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
-        }}>
+        {/* Quick Actions and Jobs remain unchanged */}
+        <Paper sx={{ p: 4, mb: 4, borderRadius: 3, background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
           <Typography variant="h5" gutterBottom fontWeight={600} color="text.primary">
             Quick Actions
           </Typography>
           <Stack spacing={2} direction={{ xs: "column", sm: "row" }}>
+            {/* Admin: Add new client */}
+            {user.role === 'admin' && (
+              <Button variant="contained" color="primary" onClick={() => setShowClientForm(v => !v)}>
+                {showClientForm ? 'Hide Client Form' : 'Add New Client'}
+              </Button>
+            )}
+            {/* Field Team: See notification for new job */}
+            {user.role === 'field_team' && (
+              <Typography color="info.main" fontWeight={600}>Check for new jobs assigned!</Typography>
+            )}
+            {/* QA: See jobs pending QA */}
+            {user.role === 'qa_officer' && (
+              <Typography color="secondary.main" fontWeight={600}>Review jobs pending QA</Typography>
+            )}
+            {/* MD: See jobs pending approval */}
+            {user.role === 'md' && (
+              <Typography color="error.main" fontWeight={600}>Review jobs pending MD approval</Typography>
+            )}
+            {/* Accounts: See jobs pending payment */}
+            {user.role === 'accounts' && (
+              <Typography color="success.main" fontWeight={600}>Track and mark payments</Typography>
+            )}
+            {/* Dashboard button always enabled */}
             {pages.map((page: { label: string; path: string }, index: number) => (
               <Grow in timeout={1400 + index * 200} key={page.path}>
                 <Button 
                   variant="contained" 
                   onClick={() => router.push(page.path)}
                   sx={{
-                    background: roleGradients[user.role],
+                    background: roleColors[user.role],
                     px: 4,
                     py: 1.5,
                     borderRadius: 2,
@@ -193,15 +265,32 @@ export default function Dashboard() {
                       boxShadow: '0 6px 20px rgba(0,0,0,0.2)'
                     }
                   }}
+                  fullWidth
                 >
                   {page.label}
                 </Button>
               </Grow>
             ))}
           </Stack>
+          {/* Admin: Show client form */}
+          {user.role === 'admin' && showClientForm && (
+            <Box mt={3}>
+              <Typography variant="h6" fontWeight={600} mb={2}>Add New Client</Typography>
+              <Stack spacing={2}>
+                <input placeholder="Client Name" value={newClient.clientName} onChange={e => setNewClient(n => ({ ...n, clientName: e.target.value }))} />
+                <select value={newClient.assetType} onChange={e => setNewClient(n => ({ ...n, assetType: e.target.value }))}>
+                  <option value="land">Land</option>
+                  <option value="car">Car</option>
+                </select>
+                {renderClientFormFields(newClient.assetType)}
+                <Button variant="contained" color="success" onClick={() => { addJob({ ...newClient, assetType: newClient.assetType as AssetType }); setShowClientForm(false); }}>
+                  Submit Client
+                </Button>
+              </Stack>
+            </Box>
+          )}
         </Paper>
-
-        {/* Relevant Jobs */}
+        {/* Relevant Jobs section: role-specific actions */}
         <Box>
           <Typography variant="h5" mb={3} fontWeight={600} color="text.primary">
             Relevant Jobs
@@ -255,6 +344,96 @@ export default function Dashboard() {
                           mb: 1
                         }} 
                       />
+                      {/* Admin: Cross-check field report */}
+                      {user.role === 'admin' && job.fieldReport && (
+                        <Box mt={2}>
+                          <Typography variant="caption" color="text.secondary" fontWeight={600}>Field Report:</Typography>
+                          <Typography variant="body2" color="text.primary">{job.fieldReport}</Typography>
+                        </Box>
+                      )}
+                      {/* Field Team: Upload field report */}
+                      {user.role === 'field_team' && (
+                        <Box mt={2}>
+                          <Button
+                            variant="outlined"
+                            component="label"
+                            color="primary"
+                            sx={{ mb: 1 }}
+                            onClick={() => setUploadingJobId(job.id)}
+                          >
+                            Upload Field Report (Word/PDF)
+                            <input
+                              type="file"
+                              accept=".pdf,.doc,.docx,.txt"
+                              hidden
+                              ref={fileInputRef}
+                              onChange={e => {
+                                if (e.target.files && e.target.files[0]) {
+                                  setFieldReportFile(e.target.files[0]);
+                                }
+                              }}
+                            />
+                          </Button>
+                          {fieldReportFile && uploadingJobId === job.id && (
+                            <Button
+                              variant="contained"
+                              color="success"
+                              sx={{ ml: 2 }}
+                              onClick={() => {
+                                updateJob(job.id, { fieldReport: fieldReportFile.name });
+                                setFieldReportFile(null);
+                                setUploadingJobId(null);
+                              }}
+                            >
+                              Submit Report
+                            </Button>
+                          )}
+                        </Box>
+                      )}
+                      {/* QA: Approve or revoke */}
+                      {user.role === 'qa_officer' && (
+                        <Box mt={2}>
+                          <Button
+                            variant="contained"
+                            color="success"
+                            sx={{ mr: 2 }}
+                            onClick={() => updateJob(job.id, { status: 'pending MD approval' })}
+                          >
+                            Approve & Forward to MD
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            onClick={() => updateJob(job.id, { status: 'pending fieldwork' })}
+                          >
+                            Revoke & Return to Field Team
+                          </Button>
+                        </Box>
+                      )}
+                      {/* MD: Approve for payment */}
+                      {user.role === 'md' && (
+                        <Box mt={2}>
+                          <Button
+                            variant="contained"
+                            color="success"
+                            onClick={() => updateJob(job.id, { status: 'pending payment' })}
+                          >
+                            Approve for Payment
+                          </Button>
+                        </Box>
+                      )}
+                      {/* Accounts: Mark payment received */}
+                      {user.role === 'accounts' && (
+                        <Box mt={2}>
+                          <Button
+                            variant="contained"
+                            color="success"
+                            onClick={() => updateJob(job.id, { status: 'complete', paymentReceived: true })}
+                          >
+                            Mark Payment Received
+                          </Button>
+                        </Box>
+                      )}
                       <Box mt={2}>
                         <Typography variant="caption" color="text.secondary" fontWeight={600}>
                           Chain of Custody:

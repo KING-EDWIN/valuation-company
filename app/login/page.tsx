@@ -5,7 +5,7 @@ import { Box, Typography, Button, MenuItem, Select, FormControl, InputLabel, Pap
 import { useUser } from "../../components/UserContext";
 
 const roleLabels: Record<string, string> = {
-  system_manager: "System Manager",
+  admin: "Admin",
   field_team: "Field Team",
   qa_officer: "QA Officer",
   md: "Managing Director",
@@ -13,12 +13,13 @@ const roleLabels: Record<string, string> = {
 };
 
 export default function LoginPage() {
-  const { login, roles } = useUser();
+  const { login } = useUser();
+  const roles = ["admin", "field_team", "qa_officer", "md", "accounts"];
   const [role, setRole] = useState(roles[0]);
   const router = useRouter();
 
   const handleLogin = () => {
-    login(role);
+    login(role as any);
     router.push("/dashboard");
   };
 
