@@ -35,7 +35,6 @@ export default function MDDashboard() {
     acc[job.clientName] = (acc[job.clientName] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
-  const topClients = Object.entries(clientStats).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const pendingByClient = jobs.filter(j => j.status !== "complete").reduce((acc, job) => {
     acc[job.clientName] = (acc[job.clientName] || 0) + 1;
     return acc;
