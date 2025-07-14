@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import CssBaseline from '@mui/material/CssBaseline';
 import { UserProvider } from "../components/UserContext";
 import NavBar from "../components/NavBar";
-import { ThemeProvider } from '@mui/material/styles';
-import theme from '../components/theme';
 import MuiProvider from "../components/MuiProvider";
 import { JobsProvider } from "../components/JobsContext";
 import { NotificationsProvider } from "../components/NotificationsContext";

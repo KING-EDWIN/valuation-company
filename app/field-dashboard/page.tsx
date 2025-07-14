@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Box, Typography, Paper, Button, TextField, Alert, Stack, Card, CardContent, Avatar, Chip, Fade, Grow, Grid } from "@mui/material";
+import { Box, Typography, Paper, Button, TextField, Alert, Stack, Card, CardContent, Avatar, Chip, Fade, Grow } from "@mui/material";
 import { useJobs } from "../../components/JobsContext";
 import { useNotifications } from "../../components/NotificationsContext";
 import AssignmentIcon from '@mui/icons-material/Assignment';

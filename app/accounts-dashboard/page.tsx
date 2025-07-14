@@ -4,7 +4,6 @@ import { Box, Typography, Paper, Button, Alert, Stack, Card, CardContent, Avatar
 import { useJobs } from "../../components/JobsContext";
 import { useNotifications } from "../../components/NotificationsContext";
 import PaidIcon from '@mui/icons-material/Paid';
-import AssignmentIcon from '@mui/icons-material/Assignment';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 

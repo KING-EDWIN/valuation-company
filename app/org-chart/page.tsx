@@ -1,5 +1,5 @@
 "use client";
-import { Box, Typography, Paper, Stack, Divider } from "@mui/material";
+import { Box, Typography, Paper, Stack } from "@mui/material";
 
 function OrgNode({ title, children, color }: { title: string; children?: React.ReactNode; color?: string }) {
   return (

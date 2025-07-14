@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Box, Typography, Paper, Button, Alert, Stack, Card, CardContent, Avatar, Chip, Fade, Grow } from "@mui/material";
 import { useJobs } from "../../components/JobsContext";
 import { useNotifications } from "../../components/NotificationsContext";

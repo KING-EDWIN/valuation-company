@@ -1,12 +1,10 @@
 "use client";
-import { Box, Typography, Button, Paper, Stack, Grid, Card, CardContent, Avatar, Chip, Fade, Grow } from "@mui/material";
+import { Box, Typography, Button, Paper, Stack, Card, CardContent, Avatar, Chip, Fade, Grow } from "@mui/material";
 import { useUser } from "../../components/UserContext";
 import { useJobs } from "../../components/JobsContext";
 import { useRouter } from "next/navigation";
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import PersonIcon from '@mui/icons-material/Person';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 
 const rolePages: Record<string, { label: string; path: string }[]> = {
@@ -45,7 +43,7 @@ const roleGradients: Record<string, string> = {
 };
 
 export default function Dashboard() {
-  const { user, logout } = useUser();
+  const { user } = useUser();
   const { jobs } = useJobs();
   const router = useRouter();
   if (!user) return null;
