@@ -1,7 +1,7 @@
 "use client";
 import { Box, Typography, Button, Paper, Stack, Card, CardContent, Avatar, Chip, Fade, Grow, TextField } from "@mui/material";
 import { useUser } from "../../components/UserContext";
-import { useJobs, AssetType } from "../../components/JobsContext";
+import { useJobs } from "../../components/JobsContext";
 import { useRouter } from "next/navigation";
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
