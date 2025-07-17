@@ -18,6 +18,7 @@ export default function MDDashboard() {
   const [search, setSearch] = useState("");
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [showSummary, setShowSummary] = useState(true);
 
   // --- Employee Performance ---
   const employeeStats = jobs.reduce((acc, job) => {
@@ -92,6 +93,19 @@ export default function MDDashboard() {
       py: 4
     }}>
       <Box sx={{ px: 4 }}>
+        {showSummary && (
+          <Alert severity="info" onClose={() => setShowSummary(false)} sx={{ mb: 3, borderRadius: 2 }}>
+            <b>MD Dashboard Features:</b><br/>
+            - Advanced employee performance (top surveyor, QA, MD)<br/>
+            - Client insights (top clients, most pending jobs by client)<br/>
+            - Business health (jobs this month/last month, % completed, jobs by status)<br/>
+            - Enhanced past report retrieval (filter by status, see more details including creation date, payment, revocation reason)<br/>
+            <br/>
+            The date formatting error is resolved by installing <code>date-fns</code>.<br/>
+            You can now see richer business statistics and retrieve any past report with detailed info, helping the MD make better decisions.<br/>
+            <b>If you want even more analytics or visualizations (like charts), let your developer know!</b>
+          </Alert>
+        )}
         {/* Hero Section */}
         <Box sx={{ 
           background: 'linear-gradient(135deg, #e53935 0%, #ef5350 100%)',

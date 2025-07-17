@@ -1,5 +1,5 @@
 "use client";
-import { Box, Typography, Button, Paper, Stack, Card, CardContent, Avatar, Chip, Fade, Grow } from "@mui/material";
+import { Box, Typography, Button, Paper, Stack, Card, CardContent, Avatar, Chip, Fade, Grow, TextField } from "@mui/material";
 import { useUser } from "../../components/UserContext";
 import { useJobs, AssetType } from "../../components/JobsContext";
 import { useRouter } from "next/navigation";
@@ -50,7 +50,33 @@ export default function Dashboard() {
   const router = useRouter();
   // HOOKS MUST BE HERE
   const [showClientForm, setShowClientForm] = useState(false);
-  const [newClient, setNewClient] = useState({ clientName: '', assetType: 'land', assetDetails: { location: '', landTitle: '', plotNo: '', size: '', make: '', model: '', regNo: '', year: '' } });
+  const [newClient, setNewClient] = useState({
+    ourRef: '',
+    date: '',
+    purpose: '',
+    owner: {
+      name: '',
+      signature: '', // can be a string or file upload in future
+      plotNo: '',
+      address: '',
+      contact: '',
+      propertyUse: '',
+      description: '',
+    },
+    representative: {
+      name: '',
+      plotNo: '',
+      address: '',
+      contact: '',
+      propertyUse: '',
+      description: '',
+    },
+    companyOfficial: {
+      name: '',
+      signature: '',
+      branch: '',
+    },
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingJobId, setUploadingJobId] = useState<string | null>(null);
   const [fieldReportFile, setFieldReportFile] = useState<File | null>(null);
@@ -72,22 +98,7 @@ export default function Dashboard() {
 
   const [primary, warning, success] = cardColors[user.role] || ['#1976d2', '#ff9800', '#43a047'];
 
-  // Helper: Render client form fields
-  const renderClientFormFields = (assetType: string) => assetType === 'land' ? (
-    <>
-      <input placeholder="Location" value={newClient.assetDetails.location} onChange={e => setNewClient(n => ({ ...n, assetDetails: { ...n.assetDetails, location: e.target.value } }))} />
-      <input placeholder="Land Title" value={newClient.assetDetails.landTitle} onChange={e => setNewClient(n => ({ ...n, assetDetails: { ...n.assetDetails, landTitle: e.target.value } }))} />
-      <input placeholder="Plot Number" value={newClient.assetDetails.plotNo} onChange={e => setNewClient(n => ({ ...n, assetDetails: { ...n.assetDetails, plotNo: e.target.value } }))} />
-      <input placeholder="Size (acres)" value={newClient.assetDetails.size} onChange={e => setNewClient(n => ({ ...n, assetDetails: { ...n.assetDetails, size: e.target.value } }))} />
-    </>
-  ) : (
-    <>
-      <input placeholder="Make" value={newClient.assetDetails.make} onChange={e => setNewClient(n => ({ ...n, assetDetails: { ...n.assetDetails, make: e.target.value } }))} />
-      <input placeholder="Model" value={newClient.assetDetails.model} onChange={e => setNewClient(n => ({ ...n, assetDetails: { ...n.assetDetails, model: e.target.value } }))} />
-      <input placeholder="Registration Number" value={newClient.assetDetails.regNo} onChange={e => setNewClient(n => ({ ...n, assetDetails: { ...n.assetDetails, regNo: e.target.value } }))} />
-      <input placeholder="Year" value={newClient.assetDetails.year} onChange={e => setNewClient(n => ({ ...n, assetDetails: { ...n.assetDetails, year: e.target.value } }))} />
-    </>
-  );
+  // Remove the old renderClientFormFields function and any references to newClient.assetDetails
 
   return (
     <Box sx={{ 
@@ -267,20 +278,69 @@ export default function Dashboard() {
           </Stack>
           {/* Admin: Show client form */}
           {user.role === 'admin' && showClientForm && (
-            <Box mt={3}>
-              <Typography variant="h6" fontWeight={600} mb={2}>Add New Client</Typography>
+            <Paper sx={{ p: 4, mb: 4 }}>
+              <Typography variant="h6" fontWeight={700} mb={2}>Client Request Valuation Form</Typography>
               <Stack spacing={2}>
-                <input placeholder="Client Name" value={newClient.clientName} onChange={e => setNewClient(n => ({ ...n, clientName: e.target.value }))} />
-                <select value={newClient.assetType} onChange={e => setNewClient(n => ({ ...n, assetType: e.target.value }))}>
-                  <option value="land">Land</option>
-                  <option value="car">Car</option>
-                </select>
-                {renderClientFormFields(newClient.assetType)}
-                <Button variant="contained" color="success" onClick={() => { addJob({ ...newClient, assetType: newClient.assetType as AssetType, createdBy: user.role }); setShowClientForm(false); }}>
-                  Submit Client
-                </Button>
+                <TextField label="Our Ref" value={newClient.ourRef} onChange={e => setNewClient(n => ({ ...n, ourRef: e.target.value }))} fullWidth />
+                <TextField label="Date" type="date" value={newClient.date} onChange={e => setNewClient(n => ({ ...n, date: e.target.value }))} fullWidth InputLabelProps={{ shrink: true }} />
+                <TextField label="Purpose of Report" value={newClient.purpose} onChange={e => setNewClient(n => ({ ...n, purpose: e.target.value }))} fullWidth />
+                <Typography variant="subtitle1" fontWeight={600} mt={2}>Client’s Details (Owner of the Property)</Typography>
+                <TextField label="Name" value={newClient.owner.name} onChange={e => setNewClient(n => ({ ...n, owner: { ...n.owner, name: e.target.value } }))} fullWidth />
+                <TextField label="Signature" value={newClient.owner.signature} onChange={e => setNewClient(n => ({ ...n, owner: { ...n.owner, signature: e.target.value } }))} fullWidth />
+                <TextField label="Plot No. & Address" value={newClient.owner.plotNo} onChange={e => setNewClient(n => ({ ...n, owner: { ...n.owner, plotNo: e.target.value } }))} fullWidth />
+                <TextField label="Contact" value={newClient.owner.contact} onChange={e => setNewClient(n => ({ ...n, owner: { ...n.owner, contact: e.target.value } }))} fullWidth />
+                <TextField label="Property Use" select value={newClient.owner.propertyUse} onChange={e => setNewClient(n => ({ ...n, owner: { ...n.owner, propertyUse: e.target.value } }))} fullWidth SelectProps={{ native: true }}>
+                  <option value="">Select</option>
+                  <option value="Residential">Residential</option>
+                  <option value="Commercial">Commercial</option>
+                  <option value="Industrial">Industrial</option>
+                  <option value="Agricultural">Agricultural</option>
+                </TextField>
+                <TextField label="Brief Property Description" value={newClient.owner.description} onChange={e => setNewClient(n => ({ ...n, owner: { ...n.owner, description: e.target.value } }))} fullWidth multiline rows={2} />
+                <Typography variant="subtitle1" fontWeight={600} mt={2}>Client’s Details (Client’s Representative)</Typography>
+                <TextField label="Name" value={newClient.representative.name} onChange={e => setNewClient(n => ({ ...n, representative: { ...n.representative, name: e.target.value } }))} fullWidth />
+                <TextField label="Plot No. & Address" value={newClient.representative.plotNo} onChange={e => setNewClient(n => ({ ...n, representative: { ...n.representative, plotNo: e.target.value } }))} fullWidth />
+                <TextField label="Contact" value={newClient.representative.contact} onChange={e => setNewClient(n => ({ ...n, representative: { ...n.representative, contact: e.target.value } }))} fullWidth />
+                <TextField label="Property Use" select value={newClient.representative.propertyUse} onChange={e => setNewClient(n => ({ ...n, representative: { ...n.representative, propertyUse: e.target.value } }))} fullWidth SelectProps={{ native: true }}>
+                  <option value="">Select</option>
+                  <option value="Residential">Residential</option>
+                  <option value="Commercial">Commercial</option>
+                  <option value="Industrial">Industrial</option>
+                  <option value="Agricultural">Agricultural</option>
+                </TextField>
+                <TextField label="Brief Property Description" value={newClient.representative.description} onChange={e => setNewClient(n => ({ ...n, representative: { ...n.representative, description: e.target.value } }))} fullWidth multiline rows={2} />
+                <Typography variant="subtitle1" fontWeight={600} mt={2}>Company Official Present</Typography>
+                <TextField label="Name" value={newClient.companyOfficial.name} onChange={e => setNewClient(n => ({ ...n, companyOfficial: { ...n.companyOfficial, name: e.target.value } }))} fullWidth />
+                <TextField label="Signature" value={newClient.companyOfficial.signature} onChange={e => setNewClient(n => ({ ...n, companyOfficial: { ...n.companyOfficial, signature: e.target.value } }))} fullWidth />
+                <TextField label="Branch/Head Office" value={newClient.companyOfficial.branch} onChange={e => setNewClient(n => ({ ...n, companyOfficial: { ...n.companyOfficial, branch: e.target.value } }))} fullWidth />
+                <Typography variant="body2" color="text.secondary" mt={2}><b>Note:</b> The Photograph of the Client/Client’s representative taken while on site Must be in the report.</Typography>
+                <Stack direction="row" spacing={2} mt={2}>
+                  <Button variant="contained" color="success" onClick={() => {
+                    // Map newClient fields to the expected job structure
+                    addJob({
+                      clientName: newClient.owner.name || newClient.representative.name,
+                      assetType: 'land', // or 'car' if you want to add a selector
+                      assetDetails: {
+                        location: newClient.owner.address || newClient.representative.address,
+                        landTitle: newClient.ourRef,
+                        plotNo: newClient.owner.plotNo || newClient.representative.plotNo,
+                        size: '',
+                        make: '',
+                        model: '',
+                        regNo: '',
+                        year: '',
+                        // You can add more mappings as needed
+                      },
+                      createdBy: user.role,
+                    });
+                    setShowClientForm(false);
+                  }}>
+                    Submit Client
+                  </Button>
+                  <Button variant="outlined" color="error" onClick={() => setShowClientForm(false)}>Cancel</Button>
+                </Stack>
               </Stack>
-            </Box>
+            </Paper>
           )}
         </Paper>
         {/* Relevant Jobs section: role-specific actions */}
