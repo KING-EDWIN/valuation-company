@@ -5,25 +5,16 @@ import {
   Box,
   Typography,
   Card,
-  CardContent,
   Button,
   TextField,
   Switch,
   FormControlLabel,
   Alert,
   Paper,
-  Avatar,
-  Divider,
   List,
   ListItem,
   ListItemText,
   ListItemIcon,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Chip,
   Fade,
   Grow,
   Tabs,
@@ -36,39 +27,11 @@ import {
   Notifications as NotificationsIcon,
   Palette as PaletteIcon,
   Language as LanguageIcon,
-  Save as SaveIcon,
-  Refresh as RefreshIcon,
-  CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
-  Info as InfoIcon
+  Save as SaveIcon
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
 
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`settings-tabpanel-${index}`}
-      aria-labelledby={`settings-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          {children}
-        </Box>
-      )}
-    </div>
-  );
-}
 
 export default function AdminSettings() {
   const router = useRouter();
@@ -101,11 +64,11 @@ export default function AdminSettings() {
     }
   });
 
-  const handleSettingChange = (category: string, setting: string, value: any) => {
+  const handleSettingChange = (category: string, setting: string, value: string | boolean | number) => {
     setSettings(prev => ({
       ...prev,
       [category]: {
-        ...prev[category as keyof typeof prev],
+        ...(prev[category as keyof typeof prev] as Record<string, any>),
         [setting]: value
       }
     }));
@@ -443,8 +406,8 @@ export default function AdminSettings() {
     </Box>
   );
 
-  const renderTabContent = (index: number) => {
-    switch (index) {
+  const renderTabContent = (tabIndex: number) => {
+    switch (tabIndex) {
       case 0:
         return renderGeneralSettings();
       case 1:

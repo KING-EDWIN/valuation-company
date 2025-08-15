@@ -189,7 +189,7 @@ export default function ReportReview() {
               Documents Uploaded
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {Object.entries(job.fieldReportData.documents).map(([docType, file]) => (
+              {Object.entries(job.fieldReportData.documents).map(([docType]) => (
                 <Chip
                   key={docType}
                   label={docType}
