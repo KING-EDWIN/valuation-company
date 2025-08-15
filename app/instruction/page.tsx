@@ -118,7 +118,7 @@ export default function InstructionPage() {
                     </Box>
                   </CardContent>
                 </Card>
-              </Grid>
+              </Box>
 
               {/* Asset Information */}
               <Box>
