@@ -57,7 +57,7 @@ import {
 } from '@mui/icons-material';
 import { useUser } from '../../components/UserContext';
 import { useJobs } from '../../components/JobsContext';
-import { useNotifications } from '../../components/NotificationsContext';
+import { useNotifications, Notification } from '../../components/NotificationsContext';
 import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
