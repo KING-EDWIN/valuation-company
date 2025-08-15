@@ -106,7 +106,7 @@ export default function ScheduleInspection() {
     scheduledDate: '',
     scheduledTime: '',
     estimatedDuration: '',
-    fieldTeamMember: user?.name || '',
+    fieldTeamMember: user?.role || 'Unassigned',
     specialRequirements: [] as string[],
     notes: ''
   });
@@ -123,7 +123,7 @@ export default function ScheduleInspection() {
       scheduledDate: '',
       scheduledTime: '',
       estimatedDuration: '',
-      fieldTeamMember: user?.name || '',
+      fieldTeamMember: user?.role || 'Unassigned',
       specialRequirements: [],
       notes: ''
     });
@@ -188,7 +188,7 @@ export default function ScheduleInspection() {
       scheduledDate: '',
       scheduledTime: '',
       estimatedDuration: '',
-      fieldTeamMember: user?.name || '',
+      fieldTeamMember: user?.role || 'Unassigned',
       specialRequirements: [],
       notes: ''
     });
