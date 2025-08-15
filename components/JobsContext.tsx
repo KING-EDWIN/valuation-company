@@ -16,6 +16,7 @@ export interface Job {
     location: string;
     size: string;
     propertyUse: string;
+    plotNo?: string;
     previousWorkHistory: string[];
     neighborhood: string[];
   };
@@ -72,6 +73,7 @@ interface JobsContextType {
   getJobsByStatus: (status: string) => Job[];
   getJobsByBank: (bankName: string) => Job[];
   getJobsByNeighborhood: (neighborhood: string) => Job[];
+  getJobsByProperty: (location: string, plotNo?: string) => Job[];
   getBankStatistics: () => { [key: string]: number };
   getAllBanks: () => string[];
 }
@@ -418,6 +420,13 @@ export const JobsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   };
 
+  const getJobsByProperty = (location: string, plotNo?: string) => {
+    return jobs.filter(job => 
+      job.assetDetails.location === location && 
+      (!plotNo || job.assetDetails.plotNo === plotNo)
+    );
+  };
+
   const getBankStatistics = () => {
     const stats: { [key: string]: number } = {};
     jobs.forEach(job => {
@@ -441,6 +450,7 @@ export const JobsProvider: React.FC<{ children: React.ReactNode }> = ({ children
       getJobsByStatus,
       getJobsByBank,
       getJobsByNeighborhood,
+      getJobsByProperty,
       getBankStatistics,
       getAllBanks,
     }}>
