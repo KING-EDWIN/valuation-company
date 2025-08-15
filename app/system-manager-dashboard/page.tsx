@@ -11,10 +11,10 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
 export default function SystemManagerDashboard() {
   const { jobs } = useJobs();
-  const { notifications, clearNotifications } = useNotifications();
+  const { notifications, clearAllNotifications } = useNotifications();
   const router = useRouter();
 
-  useEffect(() => { clearNotifications("system_manager"); }, [clearNotifications]);
+  useEffect(() => { clearAllNotifications("system_manager"); }, [clearAllNotifications]);
 
   const totalJobs = jobs.length;
   const pendingJobs = jobs.filter(j => j.status !== "complete").length;

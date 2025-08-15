@@ -124,7 +124,7 @@ export default function ClientAcquisitionPage() {
         items: [],
         notes: ""
       },
-      chain: []
+              chain: {}
     };
 
     addJob(newJob);

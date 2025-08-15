@@ -62,7 +62,12 @@ export interface Job {
   mdApproval?: boolean;
   paymentReceived?: boolean;
   revocationReason?: string;
-  chain: string[];
+  chain: {
+    surveyor?: string;
+    qa?: string;
+    md?: string;
+    accounts?: string;
+  };
 }
 
 interface JobsContextType {
@@ -145,7 +150,10 @@ export const JobsProvider: React.FC<{ children: React.ReactNode }> = ({ children
       adminReviewed: true,
       adminReviewDate: '2024-01-21T09:00:00Z',
       adminReviewNotes: 'Field report comprehensive and well documented. Ready for QA review.',
-      chain: ['admin', 'field_team', 'qa_officer']
+      chain: {
+        surveyor: 'John Smith',
+        qa: 'Sarah Johnson'
+      }
     },
     {
       id: 'job-2',
@@ -184,7 +192,9 @@ export const JobsProvider: React.FC<{ children: React.ReactNode }> = ({ children
       },
       createdAt: '2024-01-22T08:00:00Z',
       updatedAt: '2024-01-22T08:00:00Z',
-      chain: ['admin', 'field_team']
+      chain: {
+        surveyor: 'John Smith'
+      }
     },
     {
       id: 'job-3',
@@ -242,7 +252,11 @@ export const JobsProvider: React.FC<{ children: React.ReactNode }> = ({ children
       adminReviewDate: '2024-01-19T10:00:00Z',
       adminReviewNotes: 'Field report approved and forwarded to QA.',
       qaNotes: 'All documents verified. Valuation methodology sound. Recommended for approval.',
-      chain: ['admin', 'field_team', 'qa_officer', 'md']
+      chain: {
+        surveyor: 'John Smith',
+        qa: 'Sarah Johnson',
+        md: 'Dr. Michael Brown'
+      }
     },
     {
       id: 'job-4',
@@ -281,7 +295,9 @@ export const JobsProvider: React.FC<{ children: React.ReactNode }> = ({ children
       },
       createdAt: '2024-01-23T11:00:00Z',
       updatedAt: '2024-01-23T11:00:00Z',
-      chain: ['admin', 'field_team']
+      chain: {
+        surveyor: 'John Smith'
+      }
     },
     {
       id: 'job-5',
@@ -320,7 +336,9 @@ export const JobsProvider: React.FC<{ children: React.ReactNode }> = ({ children
       },
       createdAt: '2024-01-24T14:00:00Z',
       updatedAt: '2024-01-24T14:00:00Z',
-      chain: ['admin', 'field_team']
+      chain: {
+        surveyor: 'John Smith'
+      }
     },
     {
       id: 'job-6',
@@ -380,7 +398,12 @@ export const JobsProvider: React.FC<{ children: React.ReactNode }> = ({ children
       qaNotes: 'All documents verified. Valuation methodology sound. Recommended for approval.',
       mdApproval: true,
       paymentReceived: true,
-      chain: ['admin', 'field_team', 'qa_officer', 'md', 'accounts']
+      chain: {
+        surveyor: 'John Smith',
+        qa: 'Sarah Johnson',
+        md: 'Dr. Michael Brown',
+        accounts: 'Lisa Wilson'
+      }
     }
   ]);
 
