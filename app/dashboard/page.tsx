@@ -100,10 +100,12 @@ export default function Dashboard() {
   };
 
   const handleDeleteNotification = (notificationId: string) => {
-    deleteNotification(user.role, notificationId);
-    setShowNotification(true);
-    setNotificationMessage('Notification deleted successfully');
-    setNotificationType('success');
+    if (user) {
+      deleteNotification(user.role, notificationId);
+      setShowNotification(true);
+      setNotificationMessage('Notification deleted successfully');
+      setNotificationType('success');
+    }
   };
 
 
