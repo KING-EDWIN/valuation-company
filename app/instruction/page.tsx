@@ -121,15 +121,15 @@ export default function InstructionPage() {
               </Grid>
 
               {/* Asset Information */}
-              <Grid xs={12}>
+              <Box>
                 <Card sx={{ p: 2, bgcolor: '#f8f9fa' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <LocationOnIcon color="primary" />
                       Asset Information
                     </Typography>
-                    <Grid container spacing={2}>
-                      <Grid xs={12} md={6}>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
+                      <Box>
                         <TextField
                           select
                           label="Asset Type"
@@ -144,8 +144,8 @@ export default function InstructionPage() {
                           <MenuItem value="equipment">Equipment/Machinery</MenuItem>
                           <MenuItem value="business">Business Valuation</MenuItem>
                         </TextField>
-                      </Grid>
-                      <Grid xs={12} md={6}>
+                      </Box>
+                      <Box>
                         <TextField
                           select
                           label="Urgency Level"
@@ -160,8 +160,8 @@ export default function InstructionPage() {
                           <MenuItem value="high">High Priority</MenuItem>
                           <MenuItem value="urgent">Urgent</MenuItem>
                         </TextField>
-                      </Grid>
-                      <Grid xs={12}>
+                      </Box>
+                      <Box sx={{ gridColumn: { xs: '1 / -1', md: '1 / -1' } }}>
                         <TextField 
                           label="Asset Location" 
                           name="assetLocation" 
@@ -170,8 +170,8 @@ export default function InstructionPage() {
                           fullWidth 
                           required 
                         />
-                      </Grid>
-                      <Grid xs={12}>
+                      </Box>
+                      <Box sx={{ gridColumn: { xs: '1 / -1', md: '1 / -1' } }}>
                         <TextField 
                           label="Asset Description" 
                           name="assetDescription" 
@@ -182,22 +182,22 @@ export default function InstructionPage() {
                           rows={3}
                           required 
                         />
-                      </Grid>
-                    </Grid>
+                      </Box>
+                    </Box>
                   </CardContent>
                 </Card>
-              </Grid>
+              </Box>
 
               {/* Valuation Details */}
-              <Grid xs={12}>
+              <Box>
                 <Card sx={{ p: 2, bgcolor: '#f8f9fa' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <AssignmentIcon color="primary" />
                       Valuation Details
                     </Typography>
-                    <Grid container spacing={2}>
-                      <Grid xs={12}>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
+                      <Box sx={{ gridColumn: { xs: '1 / -1', md: '1 / -1' } }}>
                         <TextField
                           select
                           label="Purpose of Valuation"
@@ -215,8 +215,8 @@ export default function InstructionPage() {
                           <MenuItem value="investment">Investment Decision</MenuItem>
                           <MenuItem value="other">Other</MenuItem>
                         </TextField>
-                      </Grid>
-                      <Grid xs={12} md={6}>
+                      </Box>
+                      <Box>
                         <TextField 
                           label="Preferred Inspection Date" 
                           name="preferredInspectionDate" 
@@ -226,8 +226,8 @@ export default function InstructionPage() {
                           fullWidth 
                           InputLabelProps={{ shrink: true }}
                         />
-                      </Grid>
-                      <Grid xs={12}>
+                      </Box>
+                      <Box sx={{ gridColumn: { xs: '1 / -1', md: '1 / -1' } }}>
                         <TextField 
                           label="Special Requirements or Notes" 
                           name="specialRequirements" 
@@ -237,13 +237,13 @@ export default function InstructionPage() {
                           multiline 
                           rows={3}
                         />
-                      </Grid>
-                    </Grid>
+                      </Box>
+                    </Box>
                   </CardContent>
                 </Card>
-              </Grid>
+              </Box>
 
-              <Grid xs={12}>
+              <Box>
                 <Stack direction="row" spacing={2} justifyContent="center">
                   <Button 
                     type="submit" 
@@ -274,8 +274,8 @@ export default function InstructionPage() {
                     Cancel
                   </Button>
                 </Stack>
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
         </form>
       </Paper>
       </Box>
