@@ -1,0 +1,485 @@
+"use client";
+import { useState, useRef } from "react";
+import { Box, Typography, Paper, Button, Stack, Stepper, Step, StepLabel, TextField, MenuItem, Grid, Card, CardContent, Chip, Alert } from "@mui/material";
+import { useRouter } from "next/navigation";
+import { useJobs } from "../../../components/JobsContext";
+import { useNotifications } from "../../../components/NotificationsContext";
+import { useUser } from "../../../components/UserContext";
+
+const requiredDocuments = [
+  { id: "instructions", label: "Copy of Instructions", required: true },
+  { id: "title", label: "Copy of Title", required: true },
+  { id: "boq", label: "Bill of Quantities", required: true },
+  { id: "architectural", label: "Architectural Plan", required: true },
+  { id: "nema", label: "NEMA Certificate", required: true },
+  { id: "print", label: "Print (optional)", required: false },
+];
+
+const steps = ["Client Info", "Property Info", "Valuation Info", "Documents"];
+
+export default function AddClientPage() {
+  const router = useRouter();
+  const { addJob } = useJobs();
+  const { addNotification } = useNotifications();
+  const { user } = useUser();
+  const [activeStep, setActiveStep] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
+  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+
+  // Step 1: Client Info
+  const [clientInfo, setClientInfo] = useState({
+    clientName: "",
+    contactNumber: "",
+    email: "",
+    clientType: "individual",
+    idNumber: "",
+    companyName: "",
+    companyRegNumber: "",
+  });
+
+  // Step 2: Property Info
+  const [propertyInfo, setPropertyInfo] = useState({
+    assetType: "land",
+    propertyLocation: "",
+    propertyAddress: "",
+    landTitle: "",
+    plotNumber: "",
+    size: "",
+    propertyUse: "",
+    estimatedValue: "",
+    urgency: "normal",
+  });
+
+  // Step 3: Valuation Info
+  const [valuationInfo, setValuationInfo] = useState({
+    valuationPurpose: "",
+    specialRequirements: "",
+    preferredInspectionDate: "",
+    notes: "",
+  });
+
+  // Step 4: Document Uploads
+  const [uploadedDocuments, setUploadedDocuments] = useState<{ [key: string]: File | null }>({});
+
+  const handleClientInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => setClientInfo({ ...clientInfo, [e.target.name]: e.target.value });
+  const handlePropertyInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => setPropertyInfo({ ...propertyInfo, [e.target.name]: e.target.value });
+  const handleValuationInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setValuationInfo({ ...valuationInfo, [e.target.name]: e.target.value });
+  const handleFileUpload = (documentId: string, file: File) => setUploadedDocuments({ ...uploadedDocuments, [documentId]: file });
+
+  const handleNext = () => setActiveStep((prev) => prev + 1);
+  const handleBack = () => setActiveStep((prev) => prev - 1);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Validate required documents
+    const missingDocs = requiredDocuments.filter(doc => doc.required && !uploadedDocuments[doc.id]).map(doc => doc.label);
+    if (missingDocs.length > 0) {
+      alert(`Please upload the following required documents: ${missingDocs.join(", ")}`);
+      return;
+    }
+
+    // Create new job with all the collected information
+    const newJob = {
+      clientName: clientInfo.clientName,
+      assetType: propertyInfo.assetType as "land" | "car" | "equipment",
+      assetDetails: {
+        location: propertyInfo.propertyLocation,
+        landTitle: propertyInfo.landTitle,
+        plotNo: propertyInfo.plotNumber,
+        size: propertyInfo.size,
+        make: "",
+        model: "",
+        regNo: "",
+        year: ""
+      },
+      clientInfo: {
+        clientName: clientInfo.clientName,
+        contactNumber: clientInfo.contactNumber,
+        email: clientInfo.email,
+        clientType: clientInfo.clientType as "individual" | "company",
+        idNumber: clientInfo.idNumber,
+        companyName: clientInfo.companyName,
+        companyRegNumber: clientInfo.companyRegNumber
+      },
+      propertyInfo: {
+        assetType: propertyInfo.assetType as "land" | "car" | "equipment",
+        propertyLocation: propertyInfo.propertyLocation,
+        propertyAddress: propertyInfo.propertyAddress,
+        landTitle: propertyInfo.landTitle,
+        plotNumber: propertyInfo.plotNumber,
+        size: propertyInfo.size,
+        propertyUse: propertyInfo.propertyUse,
+        estimatedValue: propertyInfo.estimatedValue,
+        urgency: propertyInfo.urgency
+      },
+      valuationInfo: {
+        valuationPurpose: valuationInfo.valuationPurpose,
+        specialRequirements: valuationInfo.specialRequirements,
+        preferredInspectionDate: valuationInfo.preferredInspectionDate,
+        notes: valuationInfo.notes
+      },
+      documents: uploadedDocuments,
+      createdBy: user?.role || "admin"
+    };
+
+    // Add the job to the system
+    addJob(newJob);
+
+    // Send notification to field supervisors
+    addNotification({
+      message: `New client onboarded: ${clientInfo.clientName} - ${propertyInfo.assetType} valuation assigned`,
+      type: "info",
+      timestamp: new Date().toISOString()
+    });
+
+    // Send notification to admin
+    addNotification({
+      message: `Client ${clientInfo.clientName} successfully onboarded and assigned to field team`,
+      type: "success",
+      timestamp: new Date().toISOString()
+    });
+
+    // Show success message and redirect
+    setSubmitted(true);
+    setTimeout(() => {
+      setSubmitted(false);
+      router.push("/dashboard");
+    }, 2000);
+  };
+
+  return (
+    <Box sx={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)', py: 6, px: 2 }}>
+      <Box maxWidth={700} mx="auto">
+        <Paper sx={{ p: 5, borderRadius: 4 }}>
+          <Typography variant="h4" fontWeight={700} gutterBottom color="primary">
+            Add New Client
+          </Typography>
+          <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
+            {steps.map(label => (
+              <Step key={label}><StepLabel>{label}</StepLabel></Step>
+            ))}
+          </Stepper>
+          {submitted && <Alert severity="success" sx={{ mb: 3 }}>Client onboarded successfully! Field supervisors have been notified.</Alert>}
+          <form onSubmit={handleSubmit}>
+            {activeStep === 0 && (
+              <Box>
+                <Typography variant="h6" mb={2}>Client Information</Typography>
+                <Grid container spacing={2}>
+                  <Grid xs={12} md={6}>
+                    <TextField 
+                      label="Client Type" 
+                      name="clientType" 
+                      select 
+                      value={clientInfo.clientType} 
+                      onChange={handleClientInfoChange} 
+                      fullWidth 
+                      required
+                    >
+                      <MenuItem value="individual">Individual</MenuItem>
+                      <MenuItem value="company">Company</MenuItem>
+                    </TextField>
+                  </Grid>
+                  <Grid xs={12} md={6}>
+                    <TextField 
+                      label="Full Name" 
+                      name="clientName" 
+                      value={clientInfo.clientName} 
+                      onChange={handleClientInfoChange} 
+                      fullWidth 
+                      required 
+                    />
+                  </Grid>
+                  <Grid xs={12} md={6}>
+                    <TextField 
+                      label="Contact Number" 
+                      name="contactNumber" 
+                      value={clientInfo.contactNumber} 
+                      onChange={handleClientInfoChange} 
+                      fullWidth 
+                      required 
+                    />
+                  </Grid>
+                  <Grid xs={12} md={6}>
+                    <TextField 
+                      label="Email Address" 
+                      name="email" 
+                      type="email" 
+                      value={clientInfo.email} 
+                      onChange={handleClientInfoChange} 
+                      fullWidth 
+                      required 
+                    />
+                  </Grid>
+                  {clientInfo.clientType === "individual" ? (
+                    <Grid xs={12} md={6}>
+                      <TextField 
+                        label="ID Number" 
+                        name="idNumber" 
+                        value={clientInfo.idNumber} 
+                        onChange={handleClientInfoChange} 
+                        fullWidth 
+                        required 
+                      />
+                    </Grid>
+                  ) : (
+                    <>
+                      <Grid xs={12} md={6}>
+                        <TextField 
+                          label="Company Name" 
+                          name="companyName" 
+                          value={clientInfo.companyName} 
+                          onChange={handleClientInfoChange} 
+                          fullWidth 
+                          required 
+                        />
+                      </Grid>
+                      <Grid xs={12} md={6}>
+                        <TextField 
+                          label="Company Registration Number" 
+                          name="companyRegNumber" 
+                          value={clientInfo.companyRegNumber} 
+                          onChange={handleClientInfoChange} 
+                          fullWidth 
+                          required 
+                        />
+                      </Grid>
+                    </>
+                  )}
+                </Grid>
+              </Box>
+            )}
+            {activeStep === 1 && (
+              <Box>
+                <Typography variant="h6" mb={2}>Property Information</Typography>
+                <Grid container spacing={2}>
+                  <Grid xs={12} md={6}>
+                    <TextField 
+                      label="Asset Type" 
+                      name="assetType" 
+                      select 
+                      value={propertyInfo.assetType} 
+                      onChange={handlePropertyInfoChange} 
+                      fullWidth 
+                      required
+                    >
+                      <MenuItem value="land">Land/Property</MenuItem>
+                      <MenuItem value="car">Vehicle</MenuItem>
+                      <MenuItem value="equipment">Equipment/Machinery</MenuItem>
+                    </TextField>
+                  </Grid>
+                  <Grid xs={12} md={6}>
+                    <TextField 
+                      label="Urgency Level" 
+                      name="urgency" 
+                      select 
+                      value={propertyInfo.urgency} 
+                      onChange={handlePropertyInfoChange} 
+                      fullWidth 
+                      required
+                    >
+                      <MenuItem value="low">Low Priority</MenuItem>
+                      <MenuItem value="normal">Normal Priority</MenuItem>
+                      <MenuItem value="high">High Priority</MenuItem>
+                      <MenuItem value="urgent">Urgent</MenuItem>
+                    </TextField>
+                  </Grid>
+                  <Grid xs={12} md={6}>
+                    <TextField 
+                      label="Property Location" 
+                      name="propertyLocation" 
+                      value={propertyInfo.propertyLocation} 
+                      onChange={handlePropertyInfoChange} 
+                      fullWidth 
+                      required 
+                    />
+                  </Grid>
+                  <Grid xs={12} md={6}>
+                    <TextField 
+                      label="Land Title" 
+                      name="landTitle" 
+                      value={propertyInfo.landTitle} 
+                      onChange={handlePropertyInfoChange} 
+                      fullWidth 
+                      required 
+                    />
+                  </Grid>
+                  <Grid xs={12} md={6}>
+                    <TextField 
+                      label="Plot Number" 
+                      name="plotNumber" 
+                      value={propertyInfo.plotNumber} 
+                      onChange={handlePropertyInfoChange} 
+                      fullWidth 
+                      required 
+                    />
+                  </Grid>
+                  <Grid xs={12} md={6}>
+                    <TextField 
+                      label="Size (acres)" 
+                      name="size" 
+                      value={propertyInfo.size} 
+                      onChange={handlePropertyInfoChange} 
+                      fullWidth 
+                      required 
+                    />
+                  </Grid>
+                  <Grid xs={12} md={6}>
+                    <TextField 
+                      label="Property Use" 
+                      name="propertyUse" 
+                      value={propertyInfo.propertyUse} 
+                      onChange={handlePropertyInfoChange} 
+                      fullWidth 
+                      required 
+                    />
+                  </Grid>
+                  <Grid xs={12} md={6}>
+                    <TextField 
+                      label="Estimated Value" 
+                      name="estimatedValue" 
+                      value={propertyInfo.estimatedValue} 
+                      onChange={handlePropertyInfoChange} 
+                      fullWidth 
+                    />
+                  </Grid>
+                  <Grid xs={12}>
+                    <TextField 
+                      label="Property Address" 
+                      name="propertyAddress" 
+                      value={propertyInfo.propertyAddress} 
+                      onChange={handlePropertyInfoChange} 
+                      fullWidth 
+                      multiline 
+                      rows={2} 
+                      required 
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+            )}
+            {activeStep === 2 && (
+              <Box>
+                <Typography variant="h6" mb={2}>Valuation Information</Typography>
+                <Grid container spacing={2}>
+                  <Grid xs={12}>
+                    <TextField 
+                      label="Purpose of Valuation" 
+                      name="valuationPurpose" 
+                      select 
+                      value={valuationInfo.valuationPurpose} 
+                      onChange={handleValuationInfoChange} 
+                      fullWidth 
+                      required
+                    >
+                      <MenuItem value="mortgage">Mortgage/Security</MenuItem>
+                      <MenuItem value="insurance">Insurance</MenuItem>
+                      <MenuItem value="sale">Sale/Purchase</MenuItem>
+                      <MenuItem value="tax">Tax Assessment</MenuItem>
+                      <MenuItem value="legal">Legal Proceedings</MenuItem>
+                      <MenuItem value="investment">Investment Decision</MenuItem>
+                      <MenuItem value="other">Other</MenuItem>
+                    </TextField>
+                  </Grid>
+                  <Grid xs={12} md={6}>
+                    <TextField 
+                      label="Preferred Inspection Date" 
+                      name="preferredInspectionDate" 
+                      type="date" 
+                      value={valuationInfo.preferredInspectionDate} 
+                      onChange={handleValuationInfoChange} 
+                      fullWidth 
+                      InputLabelProps={{ shrink: true }} 
+                    />
+                  </Grid>
+                  <Grid xs={12}>
+                    <TextField 
+                      label="Special Requirements" 
+                      name="specialRequirements" 
+                      value={valuationInfo.specialRequirements} 
+                      onChange={handleValuationInfoChange} 
+                      fullWidth 
+                      multiline 
+                      rows={3} 
+                    />
+                  </Grid>
+                  <Grid xs={12}>
+                    <TextField 
+                      label="Additional Notes" 
+                      name="notes" 
+                      value={valuationInfo.notes} 
+                      onChange={handleValuationInfoChange} 
+                      fullWidth 
+                      multiline 
+                      rows={3} 
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+            )}
+            {activeStep === 3 && (
+              <Box>
+                <Typography variant="h6" mb={2}>Upload Required Documents</Typography>
+                <Grid container spacing={2}>
+                  {requiredDocuments.map(doc => (
+                    <Grid xs={12} md={6} key={doc.id}>
+                      <Card sx={{ p: 2, border: uploadedDocuments[doc.id] ? '2px solid #4caf50' : '2px solid #e0e0e0' }}>
+                        <CardContent>
+                          <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                            {doc.label}
+                            {doc.required && <span style={{ color: 'red' }}> *</span>}
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Button
+                              variant="outlined"
+                              component="label"
+                              size="small"
+                            >
+                              Upload File
+                              <input
+                                type="file"
+                                hidden
+                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                onChange={(e) => {
+                                  if (e.target.files && e.target.files[0]) {
+                                    handleFileUpload(doc.id, e.target.files[0]);
+                                  }
+                                }}
+                                ref={el => fileInputRefs.current[doc.id] = el}
+                              />
+                            </Button>
+                            {uploadedDocuments[doc.id] && (
+                              <Chip 
+                                label={uploadedDocuments[doc.id]?.name} 
+                                color="success" 
+                                size="small" 
+                                onDelete={() => setUploadedDocuments({ ...uploadedDocuments, [doc.id]: null })} 
+                              />
+                            )}
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
+            <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 4 }}>
+              <Button variant="outlined" onClick={activeStep === 0 ? () => router.push('/dashboard') : handleBack}>
+                {activeStep === 0 ? "Cancel" : "Back"}
+              </Button>
+              {activeStep < steps.length - 1 ? (
+                <Button variant="contained" color="primary" onClick={handleNext}>
+                  Next
+                </Button>
+              ) : (
+                <Button variant="contained" color="success" type="submit">
+                  Submit
+                </Button>
+              )}
+            </Stack>
+          </form>
+        </Paper>
+      </Box>
+    </Box>
+  );
+}

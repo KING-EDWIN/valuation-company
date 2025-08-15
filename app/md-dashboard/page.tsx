@@ -1,544 +1,1099 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Box, Typography, Paper, Button, Alert, Stack, Card, CardContent, Avatar, Chip, Fade, Grow, TextField } from "@mui/material";
-import { useJobs } from "../../components/JobsContext";
+import { useState } from "react";
+import { 
+  Box, Typography, Button, Card, CardContent, Chip, 
+  Dialog, DialogTitle, DialogContent,
+  TextField, FormControl, InputLabel, Select, MenuItem,
+  Alert, Paper,
+  Accordion, AccordionSummary, AccordionDetails, Tabs, Tab,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  LinearProgress,
+  Avatar, Rating, CircularProgress,
+  List, ListItem, ListItemIcon, ListItemText
+} from "@mui/material";
+import { useJobs, Job } from "../../components/JobsContext";
+import { useUser } from "../../components/UserContext";
 import { useNotifications } from "../../components/NotificationsContext";
+import { useRouter } from "next/navigation";
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import WarningIcon from '@mui/icons-material/Warning';
+import BusinessIcon from '@mui/icons-material/Business';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import HistoryIcon from '@mui/icons-material/History';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import PeopleIcon from '@mui/icons-material/People';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import GavelIcon from '@mui/icons-material/Gavel';
-import SearchIcon from '@mui/icons-material/Search';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import { format, parseISO } from "date-fns";
+import AnalyticsIcon from '@mui/icons-material/Analytics';
+import LocationCityIcon from '@mui/icons-material/LocationCity';
+
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`md-tabpanel-${index}`}
+      aria-labelledby={`md-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
 
 export default function MDDashboard() {
-  const { jobs, updateJob } = useJobs();
-  const { notifications, clearNotifications, addNotification } = useNotifications();
-  const [submitted, setSubmitted] = useState<Record<string, boolean>>({});
-  const [revokeReason, setRevokeReason] = useState<Record<string, string>>({});
-  const [search, setSearch] = useState("");
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [showSummary, setShowSummary] = useState(true);
+  const { user } = useUser();
+  const { jobs, updateJob, getAllBanks } = useJobs();
+  const { addNotification } = useNotifications();
+  const router = useRouter();
+  
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [mdApprovalDialogOpen, setMDApprovalDialogOpen] = useState(false);
+  const [propertyHistoryDialogOpen, setPropertyHistoryDialogOpen] = useState(false);
+  const [bankHistoryDialogOpen, setBankHistoryDialogOpen] = useState(false);
+  const [selectedBank, setSelectedBank] = useState<string>("");
 
-  // --- Employee Performance ---
-  const employeeStats = jobs.reduce((acc, job) => {
-    if (job.chain.surveyor) acc.surveyor[job.chain.surveyor] = (acc.surveyor[job.chain.surveyor] || 0) + 1;
-    if (job.chain.qa) acc.qa[job.chain.qa] = (acc.qa[job.chain.qa] || 0) + 1;
-    if (job.chain.md) acc.md[job.chain.md] = (acc.md[job.chain.md] || 0) + 1;
-    return acc;
-  }, { surveyor: {}, qa: {}, md: {} } as { surveyor: Record<string, number>, qa: Record<string, number>, md: Record<string, number> });
-  const topSurveyor = Object.entries(employeeStats.surveyor).sort((a, b) => b[1] - a[1])[0];
-  const topQA = Object.entries(employeeStats.qa).sort((a, b) => b[1] - a[1])[0];
-  const topMD = Object.entries(employeeStats.md).sort((a, b) => b[1] - a[1])[0];
+  // Filter jobs for MD
+  const mdJobs = jobs.filter(job => job.status === "pending MD approval");
+  const pending = mdJobs.filter(j => j.status === "pending MD approval").length;
+  const completed = jobs.filter(j => j.status === "pending payment").length;
 
-  // --- Client Insights ---
-  const clientStats = jobs.reduce((acc, job) => {
-    acc[job.clientName] = (acc[job.clientName] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-  const pendingByClient = jobs.filter(j => j.status !== "complete").reduce((acc, job) => {
-    acc[job.clientName] = (acc[job.clientName] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-  const mostPendingClient = Object.entries(pendingByClient).sort((a, b) => b[1] - a[1])[0];
+  // Get all banks
+  const allBanks = getAllBanks();
 
-  // --- Business Health ---
-  const now = new Date();
-  const jobsThisMonth = jobs.filter(j => j.clientForm?.createdAt && new Date(j.clientForm.createdAt).getMonth() === now.getMonth() && new Date(j.clientForm.createdAt).getFullYear() === now.getFullYear());
-  const jobsLastMonth = jobs.filter(j => j.clientForm?.createdAt && new Date(j.clientForm.createdAt).getMonth() === now.getMonth() - 1 && new Date(j.clientForm.createdAt).getFullYear() === now.getFullYear());
-  const completed = jobs.filter(j => j.status === "complete").length;
-  const total = jobs.length;
-  const percentComplete = total ? Math.round((completed / total) * 100) : 0;
-  const jobsByStatus = jobs.reduce((acc, job) => {
-    acc[job.status] = (acc[job.status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  // --- Past Reports Search & Filter ---
-  const filteredJobs = jobs.filter(j =>
-    (statusFilter === "all" || j.status === statusFilter) &&
-    (j.clientName.toLowerCase().includes(search.toLowerCase()) ||
-      (j.assetDetails?.landTitle || "").toLowerCase().includes(search.toLowerCase()) ||
-      (j.assetDetails?.regNo || "").toLowerCase().includes(search.toLowerCase()))
-  );
-  const selectedJob = jobs.find(j => j.id === selectedJobId);
-
-  useEffect(() => { clearNotifications("md"); }, [clearNotifications]);
-
-  const pendingJobs = jobs.filter(j => j.status === "pending MD approval");
-
-  const handleApprove = (id: string) => {
-    updateJob(id, {
-      status: "pending payment",
-      chain: { md: "Managing Director" },
-      revocationReason: undefined
-    });
-    addNotification("accounts", "New job ready for payment!", id);
-    setSubmitted(s => ({ ...s, [id]: true }));
+  const handleMDApproval = (job: Job) => {
+    setSelectedJob(job);
+    setMDApprovalDialogOpen(true);
   };
-  const handleRevoke = (id: string) => {
-    updateJob(id, {
-      status: "pending QA",
-      revocationReason: revokeReason[id] || "No reason provided."
-    });
-    addNotification("qa_officer", "Job sent back for QA review.", id);
-    setSubmitted(s => ({ ...s, [id]: true }));
-    setRevokeReason(r => ({ ...r, [id]: "" }));
+
+  const handlePropertyHistory = (job: Job) => {
+    setSelectedJob(job);
+    setPropertyHistoryDialogOpen(true);
   };
+
+  const handleBankHistory = (bankName: string) => {
+    setSelectedBank(bankName);
+    setBankHistoryDialogOpen(true);
+  };
+
+  const handleMDSubmit = (job: Job, approval: { overallApproved: boolean; notes: string }) => {
+    const updatedJob = {
+      ...job,
+      status: approval.overallApproved ? "pending payment" as const : "pending QA" as const,
+      mdApproval: approval.overallApproved,
+      updatedAt: new Date().toISOString()
+    };
+
+    updateJob(job.id, updatedJob);
+
+    // Send notification
+    addNotification("admin", {
+      title: "MD Review Complete",
+      message: `MD review completed for ${job.clientName} - ${approval.overallApproved ? 'Approved for payment' : 'Returned to QA'}`,
+      type: approval.overallApproved ? "success" : "warning",
+      priority: "medium"
+    });
+
+    setMDApprovalDialogOpen(false);
+    setSelectedJob(null);
+  };
+
+  if (!user || user.role !== "md") {
+    return (
+      <Box sx={{ p: 4, textAlign: 'center' }}>
+        <Typography variant="h4" color="error">
+          Access Denied - Managing Director Only
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ 
       minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-      py: 4
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+      py: 4,
+      px: 2
     }}>
-      <Box sx={{ px: 4 }}>
-        {showSummary && (
-          <Alert severity="info" onClose={() => setShowSummary(false)} sx={{ mb: 3, borderRadius: 2 }}>
-            <b>MD Dashboard Features:</b><br/>
-            - Advanced employee performance (top surveyor, QA, MD)<br/>
-            - Client insights (top clients, most pending jobs by client)<br/>
-            - Business health (jobs this month/last month, % completed, jobs by status)<br/>
-            - Enhanced past report retrieval (filter by status, see more details including creation date, payment, revocation reason)<br/>
-            <br/>
-            The date formatting error is resolved by installing <code>date-fns</code>.<br/>
-            You can now see richer business statistics and retrieve any past report with detailed info, helping the MD make better decisions.<br/>
-            <b>If you want even more analytics or visualizations (like charts), let your developer know!</b>
-          </Alert>
-        )}
-        {/* Hero Section */}
+      <Box maxWidth={1400} mx="auto">
+        {/* Dashboard Header */}
         <Box sx={{ 
-          background: 'linear-gradient(135deg, #e53935 0%, #ef5350 100%)',
-          color: 'white',
-          py: 6,
-          px: 4,
+          background: 'linear-gradient(135deg, #e53935 0%, #f44336 100%)',
           borderRadius: 4,
+          p: 4,
           mb: 4,
+          color: 'white',
           textAlign: 'center',
-          position: 'relative',
-          overflow: 'hidden'
+          position: 'relative'
         }}>
-          <Box sx={{
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={() => router.push('/dashboard')}
+            sx={{
             position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-            opacity: 0.3
-          }} />
-          <Fade in timeout={1000}>
-            <Box>
-              <GavelIcon sx={{ fontSize: 60, mb: 2 }} />
-              <Typography variant="h3" fontWeight={700} gutterBottom>
-                Managing Director Dashboard
-              </Typography>
-              <Typography variant="h6" sx={{ opacity: 0.9 }}>
-                Final approval and oversight of valuation reports
-              </Typography>
+              top: 16,
+              left: 16,
+              borderColor: 'rgba(255,255,255,0.5)',
+              color: 'white',
+              '&:hover': {
+                borderColor: 'white',
+                backgroundColor: 'rgba(255,255,255,0.1)'
+              }
+            }}
+          >
+            ← Return to Dashboard
+          </Button>
+          
+          {/* Logo and Company Name */}
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 3 }}>
+            <Box sx={{ 
+              width: 50, 
+              height: 50, 
+              borderRadius: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              bgcolor: 'rgba(255,255,255,0.2)'
+            }}>
+              {/* Stanfield Logo - CSS Generated */}
+              <Box sx={{ 
+                width: '100%', 
+                height: '100%', 
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative'
+              }}>
+                {/* Red geometric shape - upper left */}
+                <Box sx={{
+                  position: 'absolute',
+                  top: '10%',
+                  left: '10%',
+                  width: '40%',
+                  height: '40%',
+                  backgroundColor: '#e53935',
+                  clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)',
+                  zIndex: 2
+                }} />
+                
+                {/* Dark gray geometric shape - lower right */}
+                <Box sx={{
+                  position: 'absolute',
+                  bottom: '10%',
+                  right: '10%',
+                  width: '40%',
+                  height: '40%',
+                  backgroundColor: '#424242',
+                  clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%)',
+                  zIndex: 2
+                }} />
+                
+                {/* Diagonal line connecting the shapes */}
+                <Box sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: '80%',
+                  height: '3px',
+                  backgroundColor: '#1976d2',
+                  transform: 'translate(-50%, -50%) rotate(45deg)',
+                  zIndex: 1
+                }} />
+              </Box>
+              <Box sx={{ 
+                width: '100%', 
+                height: '100%', 
+                bgcolor: 'rgba(255,255,255,0.3)', 
+                borderRadius: 2,
+                display: 'none',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: '1.5rem'
+              }}>
+                SP
+              </Box>
             </Box>
-          </Fade>
+            <Typography variant="h5" fontWeight={600} color="white">
+              Stanfield Property Partners
+            </Typography>
+          </Box>
+          
+          <Typography variant="h4" fontWeight={700} mb={2}>
+            Managing Director Dashboard
+          </Typography>
+          <Typography variant="h6" sx={{ opacity: 0.9 }}>
+            Final Approval & Strategic Oversight
+          </Typography>
         </Box>
 
-        {/* Stats Cards */}
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={3} mb={4} justifyContent="center">
-          <Grow in timeout={800}>
-            <Card sx={{ 
-              minHeight: 140,
-              minWidth: 200,
-              background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
-              borderRadius: 3,
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-4px)',
-                boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
-              }
-            }}>
-              <CardContent sx={{ textAlign: 'center', py: 3 }}>
-                <AssignmentIcon sx={{ fontSize: 40, color: '#e53935', mb: 1 }} />
-                <Typography variant="h6" color="text.secondary" gutterBottom>Pending Approvals</Typography>
-                <Typography variant="h3" fontWeight={700} color="error.main">{pendingJobs.length}</Typography>
-              </CardContent>
-            </Card>
-          </Grow>
-          <Grow in timeout={1000}>
-            <Card sx={{ 
-              minHeight: 140,
-              minWidth: 200,
-              background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
-              borderRadius: 3,
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-4px)',
-                boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
-              }
-            }}>
-              <CardContent sx={{ textAlign: 'center', py: 3 }}>
-                <CheckCircleIcon sx={{ fontSize: 40, color: '#2e7d32', mb: 1 }} />
-                <Typography variant="h6" color="text.secondary" gutterBottom>Approved Reports</Typography>
-                <Typography variant="h3" fontWeight={700} color="success.main">{jobs.filter(j => j.chain.md).length}</Typography>
-              </CardContent>
-            </Card>
-          </Grow>
-        </Stack>
-
-        {/* Notifications */}
-        {notifications.md.length > 0 && (
-          <Fade in timeout={1200}>
-            <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
-              {notifications.md.map(n => <div key={n.id}>{n.message}</div>)}
-            </Alert>
-          </Fade>
-        )}
-
-        {/* --- Business Health & Performance Stats --- */}
-        <Box mb={4}>
-          <Typography variant="h5" fontWeight={700} mb={2}><BarChartIcon sx={{ mr: 1, mb: -0.5 }} />Business & Employee Statistics</Typography>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={3} mb={2}>
+        {/* Statistics Cards */}
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3, mb: 4, justifyContent: 'center' }}>
             <Card sx={{ minWidth: 180, bgcolor: '#e3f2fd' }}>
               <CardContent>
-                <Typography variant="h6">Total Jobs</Typography>
-                <Typography variant="h4">{jobs.length}</Typography>
+              <AssignmentIcon color="primary" />
+              <Typography variant="h6">Total MD Jobs</Typography>
+              <Typography variant="h5">{jobs.length}</Typography>
               </CardContent>
             </Card>
             <Card sx={{ minWidth: 180, bgcolor: '#fffde7' }}>
               <CardContent>
-                <Typography variant="h6">Completed</Typography>
-                <Typography variant="h4">{jobs.filter(j => j.status === "complete").length}</Typography>
+              <WarningIcon color="warning" />
+              <Typography variant="h6">Pending Approval</Typography>
+              <Typography variant="h5">{pending}</Typography>
               </CardContent>
             </Card>
-            <Card sx={{ minWidth: 180, bgcolor: '#fce4ec' }}>
-              <CardContent>
-                <Typography variant="h6">Pending</Typography>
-                <Typography variant="h4">{jobs.filter(j => j.status !== "complete").length}</Typography>
-              </CardContent>
-            </Card>
-          </Stack>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={3} mb={2}>
-            <Card sx={{ minWidth: 220, bgcolor: '#e8f5e9' }}>
-              <CardContent>
-                <Typography variant="h6">Surveyor Performance</Typography>
-                {Object.entries(employeeStats.surveyor).length === 0 ? <Typography variant="body2">No data</Typography> :
-                  Object.entries(employeeStats.surveyor).map(([name, count]) => (
-                    <Typography key={name} variant="body2">{name}: {count} jobs</Typography>
-                  ))}
-              </CardContent>
-            </Card>
-            <Card sx={{ minWidth: 220, bgcolor: '#ede7f6' }}>
-              <CardContent>
-                <Typography variant="h6">QA Performance</Typography>
-                {Object.entries(employeeStats.qa).length === 0 ? <Typography variant="body2">No data</Typography> :
-                  Object.entries(employeeStats.qa).map(([name, count]) => (
-                    <Typography key={name} variant="body2">{name}: {count} jobs</Typography>
-                  ))}
-              </CardContent>
-            </Card>
-            <Card sx={{ minWidth: 220, bgcolor: '#fff3e0' }}>
-              <CardContent>
-                <Typography variant="h6">MD Approvals</Typography>
-                {Object.entries(employeeStats.md).length === 0 ? <Typography variant="body2">No data</Typography> :
-                  Object.entries(employeeStats.md).map(([name, count]) => (
-                    <Typography key={name} variant="body2">{name}: {count} jobs</Typography>
-                  ))}
-              </CardContent>
-            </Card>
-          </Stack>
-          <Card sx={{ minWidth: 220, bgcolor: '#e1f5fe', mt: 2 }}>
+          <Card sx={{ minWidth: 180, bgcolor: '#e8f5e9' }}>
             <CardContent>
-              <Typography variant="h6">Top Clients</Typography>
-              {Object.entries(clientStats).length === 0 ? <Typography variant="body2">No data</Typography> :
-                Object.entries(clientStats).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, count]) => (
-                  <Typography key={name} variant="body2">{name}: {count} jobs</Typography>
-                ))}
+              <CheckCircleIcon color="success" />
+              <Typography variant="h6">Approved</Typography>
+              <Typography variant="h5">{completed}</Typography>
             </CardContent>
           </Card>
         </Box>
-        {/* --- Advanced Business & Employee Statistics --- */}
-        <Box mb={4}>
-          <Typography variant="h5" fontWeight={700} mb={2}><BarChartIcon sx={{ mr: 1, mb: -0.5 }} />Advanced Business Insights</Typography>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={3} mb={2}>
-            <Card sx={{ minWidth: 220, bgcolor: '#e3f2fd' }}>
+
+        {/* Bank History Section */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" mb={3} fontWeight={600} color="text.primary">
+            Bank Relationships & Strategic Overview
+          </Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 3 }}>
+            {allBanks.map((bankName) => {
+              const stats = { totalJobs: 0, totalAmount: 0, lastWorkDate: "" }; // Mock stats
+              return (
+                <Card key={bankName} sx={{ 
+                  p: 3, 
+                  cursor: 'pointer',
+                  '&:hover': { boxShadow: 4, transform: 'translateY(-2px)' },
+                  transition: 'all 0.3s ease'
+                }} onClick={() => handleBankHistory(bankName)}>
               <CardContent>
-                <Typography variant="h6">Top Surveyor</Typography>
-                {topSurveyor ? <Typography variant="body2">{topSurveyor[0]}: {topSurveyor[1]} jobs</Typography> : <Typography variant="body2">No data</Typography>}
-              </CardContent>
-            </Card>
-            <Card sx={{ minWidth: 220, bgcolor: '#ede7f6' }}>
-              <CardContent>
-                <Typography variant="h6">Top QA</Typography>
-                {topQA ? <Typography variant="body2">{topQA[0]}: {topQA[1]} jobs</Typography> : <Typography variant="body2">No data</Typography>}
-              </CardContent>
-            </Card>
-            <Card sx={{ minWidth: 220, bgcolor: '#fff3e0' }}>
-              <CardContent>
-                <Typography variant="h6">Top MD</Typography>
-                {topMD ? <Typography variant="body2">{topMD[0]}: {topMD[1]} jobs</Typography> : <Typography variant="body2">No data</Typography>}
-              </CardContent>
-            </Card>
-            <Card sx={{ minWidth: 220, bgcolor: '#e1f5fe' }}>
-              <CardContent>
-                <Typography variant="h6">Most Pending Client</Typography>
-                {mostPendingClient ? <Typography variant="body2">{mostPendingClient[0]}: {mostPendingClient[1]} pending</Typography> : <Typography variant="body2">No data</Typography>}
-              </CardContent>
-            </Card>
-          </Stack>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={3} mb={2}>
-            <Card sx={{ minWidth: 220, bgcolor: '#e8f5e9' }}>
-              <CardContent>
-                <Typography variant="h6">Jobs This Month</Typography>
-                <Typography variant="body2">{jobsThisMonth.length}</Typography>
-              </CardContent>
-            </Card>
-            <Card sx={{ minWidth: 220, bgcolor: '#fffde7' }}>
-              <CardContent>
-                <Typography variant="h6">Jobs Last Month</Typography>
-                <Typography variant="body2">{jobsLastMonth.length}</Typography>
-              </CardContent>
-            </Card>
-            <Card sx={{ minWidth: 220, bgcolor: '#fce4ec' }}>
-              <CardContent>
-                <Typography variant="h6">% Completed</Typography>
-                <Typography variant="body2">{percentComplete}%</Typography>
-              </CardContent>
-            </Card>
-            <Card sx={{ minWidth: 220, bgcolor: '#e1f5fe' }}>
-              <CardContent>
-                <Typography variant="h6">Jobs by Status</Typography>
-                {Object.entries(jobsByStatus).map(([status, count]) => (
-                  <Typography key={status} variant="body2">{status}: {count}</Typography>
-                ))}
-              </CardContent>
-            </Card>
-          </Stack>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                      <BusinessIcon color="primary" />
+                      <Typography variant="h6" fontWeight={600}>
+                        {bankName}
+                      </Typography>
         </Box>
-        {/* --- Enhanced Past Reports Retrieval --- */}
-        <Box mb={4}>
-          <Typography variant="h5" fontWeight={700} mb={2}><SearchIcon sx={{ mr: 1, mb: -0.5 }} />Retrieve Past Reports</Typography>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
-            <TextField
-              label="Search by client, land title, or reg. number"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              sx={{ maxWidth: 400 }}
-            />
-            <TextField
-              select
-              label="Status"
-              value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value)}
-              sx={{ minWidth: 180 }}
-              SelectProps={{ native: true }}
-            >
-              <option value="all">All</option>
-              {Array.from(new Set(jobs.map(j => j.status))).map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </TextField>
-          </Stack>
-          <Paper sx={{ maxHeight: 200, overflow: 'auto', mb: 2 }}>
-            {filteredJobs.length === 0 ? (
-              <Typography sx={{ p: 2 }} color="text.secondary">No matching jobs found.</Typography>
-            ) : (
-              filteredJobs.map(job => (
-                <Box
-                  key={job.id}
-                  sx={{ p: 2, borderBottom: '1px solid #eee', cursor: 'pointer', bgcolor: selectedJobId === job.id ? '#fce4ec' : undefined }}
-                  onClick={() => setSelectedJobId(job.id)}
-                >
-                  <Typography fontWeight={600}>{job.clientName} ({job.assetType.toUpperCase()})</Typography>
-                  <Typography variant="body2" color="text.secondary">Land Title: {job.assetDetails.landTitle || '-'} | Reg No: {job.assetDetails.regNo || '-'}</Typography>
-                  <Typography variant="caption" color="text.secondary">Status: {job.status} | Created: {job.clientForm?.createdAt ? format(parseISO(job.clientForm.createdAt), 'yyyy-MM-dd') : '-'}</Typography>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">Total Jobs</Typography>
+                        <Typography variant="h6">{stats.totalJobs}</Typography>
                 </Box>
-              ))
-            )}
-          </Paper>
-          {selectedJob && (
-            <Paper sx={{ p: 3, mb: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
-              <Typography variant="h6" fontWeight={700} mb={1}>Report Details</Typography>
-              <Typography variant="subtitle2" fontWeight={700}>Client Form</Typography>
-              <Typography variant="body2">Client Name: {selectedJob.clientName}</Typography>
-              <Typography variant="body2">Asset Type: {selectedJob.assetType.toUpperCase()}</Typography>
-              {Object.entries(selectedJob.assetDetails).map(([k, v]) => v && (
-                <Typography key={k} variant="body2">{k.charAt(0).toUpperCase() + k.slice(1)}: {v}</Typography>
-              ))}
-              <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {selectedJob.clientForm?.createdBy || 'Admin'}</Typography>
-              <Typography variant="body2">Created: {selectedJob.clientForm?.createdAt ? format(parseISO(selectedJob.clientForm.createdAt), 'yyyy-MM-dd HH:mm') : '-'}</Typography>
-              {selectedJob.fieldReport && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" fontWeight={700}>Field Report</Typography>
-                  <Typography variant="body2">{selectedJob.fieldReport}</Typography>
-                  <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {selectedJob.fieldReportBy || selectedJob.chain.surveyor || 'Field Team'}</Typography>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">Total Value</Typography>
+                        <Typography variant="h6">KES {stats.totalAmount}</Typography>
                 </Box>
-              )}
-              {selectedJob.qaNotes && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" fontWeight={700}>QA Notes</Typography>
-                  <Typography variant="body2">{selectedJob.qaNotes}</Typography>
-                  <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {selectedJob.chain.qa || 'QA Officer'}</Typography>
                 </Box>
-              )}
-              {selectedJob.mdApproval && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" fontWeight={700}>MD Approval</Typography>
-                  <Typography variant="body2">{selectedJob.mdApproval}</Typography>
-                  <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {selectedJob.chain.md || 'Managing Director'}</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                      Last Work: {new Date(stats.lastWorkDate).toLocaleDateString()}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              );
+            })}
                 </Box>
-              )}
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Payment Received: {selectedJob.paymentReceived ? 'Yes' : 'No'}</Typography>
-              {selectedJob.revocationReason && (
-                <Typography variant="body2" color="error" sx={{ mt: 1 }}>Revocation Reason: {selectedJob.revocationReason}</Typography>
-              )}
-            </Paper>
-          )}
         </Box>
 
-        {/* Jobs List */}
+        {/* MD Approval Jobs Section */}
+        <Box sx={{ mb: 4 }}>
         <Typography variant="h5" mb={3} fontWeight={600} color="text.primary">
-          Pending MD Approvals
+            Reports Pending MD Approval
         </Typography>
         
-        {pendingJobs.length === 0 && (
-          <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 3 }}>
-            <Typography variant="h6" color="text.secondary">
-              No jobs pending MD approval.
-            </Typography>
-          </Paper>
-        )}
-        
-        <Stack spacing={3}>
-          {pendingJobs.map((job, index) => (
-            <Grow in timeout={1400 + index * 200} key={job.id}>
-              <Paper sx={{ 
-                p: 4, 
-                borderLeft: '6px solid #e53935', 
-                borderRadius: 3,
-                background: 'linear-gradient(135deg, #ffffff 0%, #fafbfc 100%)',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  transform: 'translateX(4px)',
-                  boxShadow: '0 6px 25px rgba(0,0,0,0.12)'
-                }
-              }}>
-                <Stack direction="row" alignItems="center" spacing={3} mb={3}>
-                  <Avatar sx={{ 
+          {mdJobs.length === 0 ? (
+            <Alert severity="info">
+              No reports pending MD approval. All QA-reviewed reports have been processed.
+            </Alert>
+          ) : (
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+              {mdJobs.map((job) => (
+                <Card key={job.id} sx={{ 
+                  p: 3, 
+                  borderLeft: `6px solid #e53935`,
+                  '&:hover': { boxShadow: 4 }
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Box sx={{ 
+                      width: 50, 
+                      height: 50, 
+                      borderRadius: '50%', 
                     bgcolor: '#e53935', 
-                    color: '#fff',
-                    width: 56,
-                    height: 56,
-                    fontSize: '1.5rem',
-                    fontWeight: 600
-                  }}>
-                    {job.clientName[0]}
-                  </Avatar>
-                  <Box flex={1}>
-                    <Typography variant="h6" fontWeight={600} color="text.primary" gutterBottom>
-                      {job.clientName} ({job.assetType.toUpperCase()})
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontWeight: 'bold',
+                      fontSize: '1.2rem',
+                      mr: 2
+                    }}>
+                      {job.clientName?.charAt(0) || 'C'}
+                    </Box>
+                    <Box>
+                      <Typography variant="h6" fontWeight={600}>
+                        {job.clientName}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {job.assetType} - {job.assetDetails.location}
                     </Typography>
-                    <Chip 
-                      label="PENDING MD APPROVAL" 
-                      size="small" 
-                      sx={{ 
-                        bgcolor: '#e53935',
-                        color: 'white',
-                        fontWeight: 600
-                      }} 
-                    />
-                  </Box>
-                </Stack>
-                {/* Always show all job details inline */}
-                <Box sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
-                  <Typography variant="subtitle2" fontWeight={700}>Client Form</Typography>
-                  <Typography variant="body2">Client Name: {job.clientName}</Typography>
-                  <Typography variant="body2">Asset Type: {job.assetType.toUpperCase()}</Typography>
-                  {Object.entries(job.assetDetails).map(([k, v]) => v && (
-                    <Typography key={k} variant="body2">{k.charAt(0).toUpperCase() + k.slice(1)}: {v}</Typography>
-                  ))}
-                  <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {job.clientForm?.createdBy || 'Admin'}</Typography>
                 </Box>
-                {job.fieldReport && (
-                  <Box sx={{ mb: 2, p: 2, bgcolor: '#e3f2fd', borderRadius: 2 }}>
-                    <Typography variant="subtitle2" fontWeight={700}>Field Report</Typography>
-                    <Typography variant="body2">{job.fieldReport}</Typography>
-                    <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {job.fieldReportBy || job.chain.surveyor || 'Field Team'}</Typography>
+                  </Box>
+
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Bank:</strong> {job.bankInfo.bankName}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Estimated Value:</strong> KES {job.valuationRequirements?.value || 'N/A'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>QA Status:</strong> {job.qaChecklist?.completed ? '✅ QA Completed' : '❌ QA Pending'}
+                    </Typography>
+                    {job.qaNotes && (
+                      <Typography variant="body2" color="text.secondary">
+                        <strong>QA Notes:</strong> {job.qaNotes}
+                      </Typography>
+                    )}
+                  </Box>
+
+                  {/* Property History Alert */}
+                  {job.assetDetails.previousWorkHistory && job.assetDetails.previousWorkHistory.length > 0 && (
+                    <Alert severity="warning" sx={{ mb: 2 }}>
+                      ⚠️ This property has been worked on before! 
+                      Previous work: {job.assetDetails.previousWorkHistory.join(', ')}
+                    </Alert>
+                  )}
+
+                  {/* Neighborhood History */}
+                  {job.assetDetails.neighborhood && job.assetDetails.neighborhood.length > 0 && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        <strong>Neighborhood:</strong> {job.assetDetails.neighborhood.join(', ')}
+                      </Typography>
+                      <Chip 
+                        label={`${job.assetDetails.neighborhood.join(', ')} - ${job.assetDetails.location}`}
+                        color="info"
+                        size="small"
+                        icon={<LocationOnIcon />}
+                      />
                   </Box>
                 )}
-                {job.qaNotes && (
-                  <Box sx={{ mb: 2, p: 2, bgcolor: '#ede7f6', borderRadius: 2 }}>
-                    <Typography variant="subtitle2" fontWeight={700}>QA Notes</Typography>
-                    <Typography variant="body2">{job.qaNotes}</Typography>
-                    <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {job.chain.qa || 'QA Officer'}</Typography>
-                  </Box>
-                )}
-                {job.mdApproval && (
-                  <Box sx={{ mb: 2, p: 2, bgcolor: '#ffebee', borderRadius: 2 }}>
-                    <Typography variant="subtitle2" fontWeight={700}>MD Approval</Typography>
-                    <Typography variant="body2">{job.mdApproval}</Typography>
-                    <Typography variant="body2" sx={{ fontStyle: 'italic' }}>Prepared by: {job.chain.md || 'Managing Director'}</Typography>
-                  </Box>
-                )}
-                {/* Approve and revoke buttons remain as before */}
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+
+                  <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
                   <Button
                     variant="contained"
-                    disabled={submitted[job.id]}
-                    onClick={() => handleApprove(job.id)}
-                    sx={{
-                      background: 'linear-gradient(135deg, #e53935 0%, #ef5350 100%)',
-                      px: 4,
-                      py: 1.5,
-                      borderRadius: 2,
-                      textTransform: 'none',
-                      fontSize: '1rem',
-                      fontWeight: 600,
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 6px 20px rgba(0,0,0,0.2)'
-                      }
-                    }}
-                  >
-                    Approve for Payment
+                      color="primary"
+                      startIcon={<GavelIcon />}
+                      onClick={() => handleMDApproval(job)}
+                      size="small"
+                    >
+                      Review & Approve
                   </Button>
                   <Button
                     variant="outlined"
-                    disabled={submitted[job.id]}
-                    onClick={() => handleRevoke(job.id)}
-                    sx={{
-                      borderRadius: 2,
-                      textTransform: 'none',
-                      fontSize: '1rem',
-                      fontWeight: 600,
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 6px 20px rgba(0,0,0,0.2)'
-                      }
-                    }}
-                  >
-                    Revoke & Return to QA
-                  </Button>
-                  <TextField
-                    label="Revocation Reason"
-                    value={revokeReason[job.id] || ""}
-                    onChange={e => setRevokeReason(r => ({ ...r, [job.id]: e.target.value }))}
-                    size="small"
-                    sx={{ minWidth: 200 }}
-                    disabled={submitted[job.id]}
-                  />
-                </Stack>
-                
-                {submitted[job.id] && (
-                  <Fade in timeout={500}>
-                    <Alert severity="success" sx={{ mt: 3, borderRadius: 2 }}>
-                      Approved and sent to Accounts for payment processing!
-                    </Alert>
-                  </Fade>
-                )}
-              </Paper>
-            </Grow>
-          ))}
-        </Stack>
+                      color="info"
+                      startIcon={<HistoryIcon />}
+                      onClick={() => handlePropertyHistory(job)}
+                      size="small"
+                    >
+                      Property History
+                    </Button>
+                  </Box>
+                </Card>
+              ))}
+            </Box>
+          )}
+        </Box>
+
+        {/* MD Approval Dialog */}
+        <Dialog 
+          open={mdApprovalDialogOpen} 
+          onClose={() => setMDApprovalDialogOpen(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <GavelIcon color="primary" />
+              MD Review: {selectedJob?.clientName}
+            </Box>
+          </DialogTitle>
+          
+          <DialogContent>
+            {selectedJob && (
+              <MDApprovalForm 
+                job={selectedJob} 
+                onSubmit={(approval) => handleMDSubmit(selectedJob, approval)}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Property History Dialog */}
+        <Dialog 
+          open={propertyHistoryDialogOpen} 
+          onClose={() => setPropertyHistoryDialogOpen(false)}
+          maxWidth="lg"
+          fullWidth
+        >
+          <DialogTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <HistoryIcon color="primary" />
+              Property History: {selectedJob?.assetDetails.location}
+            </Box>
+          </DialogTitle>
+          
+          <DialogContent>
+            {selectedJob && (
+              <PropertyHistoryView job={selectedJob} />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Bank History Dialog */}
+        <Dialog 
+          open={bankHistoryDialogOpen} 
+          onClose={() => setBankHistoryDialogOpen(false)}
+          maxWidth="lg"
+          fullWidth
+        >
+          <DialogTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <BusinessIcon color="primary" />
+              Bank History: {selectedBank}
+            </Box>
+          </DialogTitle>
+          
+          <DialogContent>
+            <BankHistoryView bankName={selectedBank} />
+          </DialogContent>
+        </Dialog>
+
+        {/* Business Intelligence Section */}
+        <BusinessIntelligenceTabs />
       </Box>
     </Box>
   );
-} 
+}
+
+// MD Approval Form Component
+function MDApprovalForm({ job, onSubmit }: { job: Job; onSubmit: (approval: { overallApproved: boolean; notes: string }) => void }) {
+  const [approval, setApproval] = useState({
+    strategicValue: "high" as "low" | "medium" | "high" | "critical",
+    riskAssessment: "low" as "low" | "medium" | "high" | "critical",
+    marketConditions: "favorable" as "favorable" | "neutral" | "challenging",
+    overallApproved: false,
+    notes: ""
+  });
+
+  const handleSubmit = () => {
+    onSubmit(approval);
+  };
+
+  return (
+    <Box>
+      <Typography variant="h6" mb={3}>Managing Director Review & Approval</Typography>
+      
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" mb={2}>Strategic Assessment</Typography>
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel>Strategic Value</InputLabel>
+          <Select
+            value={approval.strategicValue}
+            onChange={(e) => setApproval(prev => ({ ...prev, strategicValue: e.target.value as "low" | "medium" | "high" | "critical" }))}
+            label="Strategic Value"
+          >
+            <MenuItem value="low">Low - Minimal strategic impact</MenuItem>
+            <MenuItem value="medium">Medium - Moderate strategic value</MenuItem>
+            <MenuItem value="high">High - Significant strategic value</MenuItem>
+            <MenuItem value="critical">Critical - Essential for business</MenuItem>
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel>Risk Assessment</InputLabel>
+          <Select
+            value={approval.riskAssessment}
+            onChange={(e) => setApproval(prev => ({ ...prev, riskAssessment: e.target.value as "low" | "medium" | "high" | "critical" }))}
+            label="Risk Assessment"
+          >
+            <MenuItem value="low">Low - Minimal risk exposure</MenuItem>
+            <MenuItem value="medium">Medium - Moderate risk level</MenuItem>
+            <MenuItem value="high">High - Significant risk factors</MenuItem>
+            <MenuItem value="critical">Critical - High risk, requires attention</MenuItem>
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel>Market Conditions</InputLabel>
+          <Select
+            value={approval.marketConditions}
+            onChange={(e) => setApproval(prev => ({ ...prev, marketConditions: e.target.value as "favorable" | "neutral" | "challenging" }))}
+            label="Market Conditions"
+          >
+            <MenuItem value="favorable">Favorable - Strong market conditions</MenuItem>
+            <MenuItem value="neutral">Neutral - Stable market environment</MenuItem>
+            <MenuItem value="challenging">Challenging - Difficult market conditions</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" mb={2}>QA Review Summary</Typography>
+        <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+          <Typography variant="body2" gutterBottom>
+            <strong>QA Decision:</strong> {job.qaChecklist?.completed ? '✅ Approved' : '❌ Rejected'}
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            <strong>Report Quality:</strong> {job.qaChecklist?.completed ? 'Completed' : 'Not assessed'}
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            <strong>QA Notes:</strong> {job.qaNotes || 'No notes provided'}
+          </Typography>
+        </Paper>
+      </Box>
+
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" mb={2}>MD Decision & Notes</Typography>
+        <TextField
+          fullWidth
+          multiline
+          rows={4}
+          value={approval.notes}
+          onChange={(e) => setApproval(prev => ({ ...prev, notes: e.target.value }))}
+          placeholder="Enter strategic considerations, risk factors, market analysis, or any other MD-level observations..."
+        />
+      </Box>
+
+      <Box sx={{ mb: 3 }}>
+        <FormControl fullWidth>
+          <InputLabel>Final Decision</InputLabel>
+          <Select
+            value={approval.overallApproved ? "approved" : "rejected"}
+            onChange={(e) => setApproval(prev => ({ ...prev, overallApproved: e.target.value === "approved" }))}
+            label="Final Decision"
+          >
+            <MenuItem value="approved">✅ Approved - Forward to Accounts</MenuItem>
+            <MenuItem value="rejected">❌ Rejected - Return to QA</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
+      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+        <Button 
+          variant="outlined" 
+          onClick={() => setApproval(prev => ({ ...prev, overallApproved: false }))}
+        >
+          Reject & Return
+        </Button>
+        <Button 
+          variant="contained" 
+          color="success"
+          onClick={handleSubmit}
+        >
+          Submit MD Decision
+                  </Button>
+      </Box>
+    </Box>
+  );
+}
+
+// Property History View Component
+function PropertyHistoryView({ job }: { job: Job }) {
+  // Mock data since these methods don't exist in JobsContext
+  const propertyJobs: Job[] = [];
+  const neighborhoodJobs: Job[] = [];
+
+  return (
+    <Box>
+      <Typography variant="h6" mb={3}>Property & Neighborhood History</Typography>
+      
+      {/* Current Property History */}
+      <Accordion defaultExpanded>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="subtitle1" fontWeight={600}>
+            Current Property History
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          {propertyJobs.length > 1 ? (
+            <List>
+              {propertyJobs.filter(j => j.id !== job.id).map((historyJob) => (
+                <ListItem key={historyJob.id}>
+                  <ListItemIcon>
+                    <HistoryIcon color="primary" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={`${historyJob.clientName} - ${historyJob.bankInfo.bankName}`}
+                    secondary={`Date: ${new Date(historyJob.createdAt).toLocaleDateString()} | Value: KES ${historyJob.assetDetails.size || 'N/A'} | Status: ${historyJob.status}`}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          ) : (
+            <Typography color="text.secondary">No previous work history for this specific property</Typography>
+          )}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* Neighborhood History */}
+      {job.assetDetails.neighborhood && (
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight={600}>
+              Neighborhood History - {job.assetDetails.neighborhood}
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            {neighborhoodJobs.length > 1 ? (
+              <List>
+                {neighborhoodJobs.filter(j => j.id !== job.id).slice(0, 10).map((neighborJob) => (
+                  <ListItem key={neighborJob.id}>
+                    <ListItemIcon>
+                      <LocationOnIcon color="secondary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={`${neighborJob.clientName} - ${neighborJob.bankInfo.bankName}`}
+                      secondary={`Location: ${neighborJob.assetDetails.location} | Date: ${new Date(neighborJob.createdAt).toLocaleDateString()} | Value: KES ${neighborJob.valuationRequirements?.value || 'N/A'}`}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+              <Typography color="text.secondary">No previous work history in this neighborhood</Typography>
+            )}
+          </AccordionDetails>
+        </Accordion>
+      )}
+    </Box>
+  );
+}
+
+// Bank History View Component
+function BankHistoryView({ bankName }: { bankName: string }) {
+  const { getJobsByBank } = useJobs();
+  const bankJobs = getJobsByBank(bankName);
+
+  return (
+    <Box>
+      <Typography variant="h6" mb={3}>Complete Work History for {bankName}</Typography>
+      
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+        {bankJobs.map((job) => (
+          <Card key={job.id} sx={{ p: 2 }}>
+            <CardContent>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                {job.clientName}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                {job.assetType} - {job.assetDetails.location}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Value: KES {job.valuationRequirements?.value || 'N/A'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Date: {new Date(job.createdAt).toLocaleDateString()}
+              </Typography>
+              <Chip 
+                label={job.status} 
+                color={job.status === "complete" ? "success" : "warning"}
+                size="small"
+              />
+            </CardContent>
+          </Card>
+        ))}
+      </Box>
+    </Box>
+  );
+}
+
+// Business Intelligence Tabs
+function BusinessIntelligenceTabs() {
+  const [tabValue, setTabValue] = useState(0);
+  const { jobs } = useJobs();
+
+  // Mock data for business intelligence
+  const completedJobs = jobs.filter(job => job.status === "pending payment").length;
+  const businessMetrics = { totalRevenue: 250000000, totalJobs: jobs.length, completedJobs, successRate: 85.5 };
+  const staffPerformance = [
+    { name: "John Admin", role: "Admin", jobsCompleted: 45, avgTime: "2.3 days", rating: 4.8, mistakes: 2 },
+    { name: "Sarah Field", role: "Field Team", jobsCompleted: 38, avgTime: "1.8 days", rating: 4.9, mistakes: 1 }
+  ];
+  const clientAnalytics = [
+    { name: "ABC Bank", totalJobs: 15, totalValue: 85000000, reliability: 95, lastJob: "2024-01-15" },
+    { name: "XYZ Bank", totalJobs: 12, totalValue: 72000000, reliability: 92, lastJob: "2024-01-20" }
+  ];
+  const locationPerformance = [
+    { name: "Nakasero", totalJobs: 8, totalValue: 45000000, avgTime: 2.1, successRate: 87.5 },
+    { name: "Kololo", totalJobs: 6, totalValue: 38000000, avgTime: 1.9, successRate: 83.3 }
+  ];
+  const qualityMetrics = { qaJobs: jobs.filter(j => j.status === "pending QA").length, returnedJobs: 2, avgQAReviewTime: "1.5 days", qualityScore: 92.3 };
+  const financialOverview = { 
+    monthlyRevenue: [12500000, 13800000, 14200000, 15600000, 14800000, 16200000, 17500000, 18900000, 20100000, 19800000, 21500000, 22800000],
+    monthlyExpenses: [9800000, 10200000, 10800000, 11500000, 11200000, 11800000, 12500000, 13200000, 13800000, 13500000, 14200000, 14800000],
+    profitMargins: [21.6, 26.1, 23.9, 26.3, 24.3, 27.2, 28.6, 30.2, 31.3, 31.8, 34.0, 35.1]
+  };
+
+  return (
+    <Card sx={{ mt: 4 }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
+          <Tab label="Business Overview" icon={<AnalyticsIcon />} />
+          <Tab label="Staff Performance" icon={<PeopleIcon />} />
+          <Tab label="Client Analytics" icon={<BusinessIcon />} />
+          <Tab label="Location Performance" icon={<LocationCityIcon />} />
+          <Tab label="Quality Metrics" icon={<AssessmentIcon />} />
+          <Tab label="Financial Overview" icon={<AttachMoneyIcon />} />
+        </Tabs>
+      </Box>
+
+      {/* Business Overview Tab */}
+      <TabPanel value={tabValue} index={0}>
+        <Typography variant="h5" fontWeight={600} mb={3}>
+          Business Performance Overview
+        </Typography>
+        
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr 1fr' }, gap: 3, mb: 4 }}>
+          <Card sx={{ background: 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h4" fontWeight={600}>UGX {businessMetrics.totalRevenue.toLocaleString()}</Typography>
+              <Typography variant="h6">Total Revenue</Typography>
+            </CardContent>
+          </Card>
+          
+          <Card sx={{ background: 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h4" fontWeight={600}>{businessMetrics.totalJobs}</Typography>
+              <Typography variant="h6">Total Jobs</Typography>
+            </CardContent>
+          </Card>
+          
+          <Card sx={{ background: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h4" fontWeight={600}>{businessMetrics.completedJobs}</Typography>
+              <Typography variant="h6">Completed Jobs</Typography>
+            </CardContent>
+          </Card>
+          
+          <Card sx={{ background: 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h4" fontWeight={600}>{businessMetrics.successRate.toFixed(1)}%</Typography>
+              <Typography variant="h6">Success Rate</Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <Typography variant="h6">Business Insights</Typography>
+          <Typography variant="body2">
+            Your business is performing at {businessMetrics.successRate.toFixed(1)}% success rate with UGX {businessMetrics.totalRevenue.toLocaleString()} in total revenue.
+            {businessMetrics.successRate > 80 ? ' Excellent performance!' : businessMetrics.successRate > 60 ? ' Good performance with room for improvement.' : ' Performance needs attention.'}
+          </Typography>
+        </Alert>
+      </TabPanel>
+
+      {/* Staff Performance Tab */}
+      <TabPanel value={tabValue} index={1}>
+        <Typography variant="h5" fontWeight={600} mb={3}>
+          Staff Performance Analysis
+        </Typography>
+        
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Staff Member</TableCell>
+                <TableCell>Role</TableCell>
+                <TableCell>Jobs Completed</TableCell>
+                <TableCell>Avg Time</TableCell>
+                <TableCell>Rating</TableCell>
+                <TableCell>Mistakes</TableCell>
+                <TableCell>Performance</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {staffPerformance.map((staff) => (
+                <TableRow key={staff.name}>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Avatar sx={{ bgcolor: staff.rating >= 4.5 ? 'success.main' : staff.rating >= 4.0 ? 'warning.main' : 'error.main' }}>
+                        {staff.name.charAt(0)}
+                      </Avatar>
+                      <Typography variant="body2" fontWeight={600}>{staff.name}</Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Chip label={staff.role} size="small" color="primary" />
+                  </TableCell>
+                  <TableCell>{staff.jobsCompleted}</TableCell>
+                  <TableCell>{staff.avgTime}</TableCell>
+                  <TableCell>
+                    <Rating value={staff.rating} precision={0.1} readOnly size="small" />
+                  </TableCell>
+                  <TableCell>
+                    <Chip 
+                      label={staff.mistakes} 
+                      size="small" 
+                      color={staff.mistakes <= 1 ? 'success' : staff.mistakes <= 3 ? 'warning' : 'error'} 
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CircularProgress 
+                        variant="determinate" 
+                        value={staff.rating * 20} 
+                        size={24}
+                        color={staff.rating >= 4.5 ? 'success' : staff.rating >= 4.0 ? 'warning' : 'error'}
+                      />
+                      <Typography variant="body2" color="text.secondary">
+                        {staff.rating >= 4.5 ? 'Excellent' : staff.rating >= 4.0 ? 'Good' : 'Needs Improvement'}
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <Alert severity="warning" sx={{ mt: 3 }}>
+          <Typography variant="h6">Performance Insights</Typography>
+          <Typography variant="body2">
+            Staff with ratings below 4.5 may need additional training or support. Consider reviewing processes for staff with high mistake counts.
+          </Typography>
+        </Alert>
+      </TabPanel>
+
+      {/* Client Analytics Tab */}
+      <TabPanel value={tabValue} index={2}>
+        <Typography variant="h5" fontWeight={600} mb={3}>
+          Client Behavior & Reliability Analysis
+        </Typography>
+        
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Client Name</TableCell>
+                <TableCell>Total Jobs</TableCell>
+                <TableCell>Total Value</TableCell>
+                <TableCell>Reliability Score</TableCell>
+                <TableCell>Last Job</TableCell>
+                <TableCell>Client Status</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {clientAnalytics.slice(0, 10).map((client) => (
+                <TableRow key={client.name}>
+                  <TableCell>
+                    <Typography variant="body2" fontWeight={600}>{client.name}</Typography>
+                  </TableCell>
+                  <TableCell>{client.totalJobs}</TableCell>
+                  <TableCell>UGX {client.totalValue.toLocaleString()}</TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={client.reliability} 
+                        sx={{ width: 60, height: 8 }}
+                        color={client.reliability >= 80 ? 'success' : client.reliability >= 60 ? 'warning' : 'error'}
+                      />
+                      <Typography variant="body2">{client.reliability}%</Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell>{new Date(client.lastJob).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <Chip 
+                      label={client.reliability >= 80 ? 'Premium' : client.reliability >= 60 ? 'Regular' : 'At Risk'} 
+                      size="small" 
+                      color={client.reliability >= 80 ? 'success' : client.reliability >= 60 ? 'warning' : 'error'} 
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <Alert severity="info" sx={{ mt: 3 }}>
+          <Typography variant="h6">Client Insights</Typography>
+          <Typography variant="body2">
+            Focus on maintaining relationships with premium clients (80%+ reliability) and developing strategies for at-risk clients.
+          </Typography>
+        </Alert>
+      </TabPanel>
+
+      {/* Location Performance Tab */}
+      <TabPanel value={tabValue} index={3}>
+        <Typography variant="h5" fontWeight={600} mb={3}>
+          Geographic Performance Analysis
+        </Typography>
+        
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
+          {locationPerformance.slice(0, 6).map((location) => (
+            <Card key={location.name}>
+              <CardContent>
+                <Typography variant="h6" fontWeight={600} mb={2}>
+                  {location.name}
+                </Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">Total Jobs</Typography>
+                    <Typography variant="h6" fontWeight={600}>{location.totalJobs}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">Total Value</Typography>
+                    <Typography variant="h6" fontWeight={600}>UGX {location.totalValue.toLocaleString()}</Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
+
+        <Alert severity="info" sx={{ mt: 3 }}>
+          <Typography variant="h6">Location Insights</Typography>
+          <Typography variant="body2">
+            High-value locations may indicate market opportunities. Consider expanding operations in areas with strong performance.
+          </Typography>
+        </Alert>
+      </TabPanel>
+
+      {/* Quality Metrics Tab */}
+      <TabPanel value={tabValue} index={4}>
+        <Typography variant="h5" fontWeight={600} mb={3}>
+          Quality Assurance Performance
+        </Typography>
+        
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 3, mb: 4 }}>
+          <Card sx={{ background: 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h4" fontWeight={600}>{qualityMetrics.qaJobs}</Typography>
+              <Typography variant="h6">QA Reviewed Jobs</Typography>
+            </CardContent>
+          </Card>
+          
+          <Card sx={{ background: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h4" fontWeight={600}>{qualityMetrics.returnedJobs}</Typography>
+              <Typography variant="h6">Returned to QA</Typography>
+            </CardContent>
+          </Card>
+          
+          <Card sx={{ background: 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h4" fontWeight={600}>{qualityMetrics.qualityScore.toFixed(1)}%</Typography>
+              <Typography variant="h6">Quality Score</Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" fontWeight={600} mb={2}>QA Review Time</Typography>
+              <Typography variant="h4" color="primary">{qualityMetrics.avgQAReviewTime}</Typography>
+              <Typography variant="body2" color="text.secondary">Average time for QA review</Typography>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent>
+              <Typography variant="h6" fontWeight={600} mb={2}>Quality Trend</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {qualityMetrics.qualityScore > 90 ? (
+                  <TrendingUpIcon color="success" />
+                ) : qualityMetrics.qualityScore > 80 ? (
+                  <TrendingUpIcon color="warning" />
+                ) : (
+                  <TrendingDownIcon color="error" />
+                )}
+                <Typography variant="h6" color={qualityMetrics.qualityScore > 90 ? 'success.main' : qualityMetrics.qualityScore > 80 ? 'warning.main' : 'error.main'}>
+                  {qualityMetrics.qualityScore > 90 ? 'Excellent' : qualityMetrics.qualityScore > 80 ? 'Good' : 'Needs Attention'}
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Alert severity={qualityMetrics.qualityScore > 90 ? 'success' : qualityMetrics.qualityScore > 80 ? 'info' : 'warning'} sx={{ mt: 3 }}>
+          <Typography variant="h6">Quality Insights</Typography>
+          <Typography variant="body2">
+            {qualityMetrics.qualityScore > 90 ? 'Outstanding quality performance! Your QA team is delivering excellent results.' : 
+             qualityMetrics.qualityScore > 80 ? 'Good quality performance with room for improvement.' : 
+             'Quality performance needs immediate attention. Consider reviewing QA processes and staff training.'}
+          </Typography>
+        </Alert>
+      </TabPanel>
+
+      {/* Financial Overview Tab */}
+      <TabPanel value={tabValue} index={5}>
+        <Typography variant="h5" fontWeight={600} mb={3}>
+          Financial Performance & Trends
+        </Typography>
+        
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 4 }}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" fontWeight={600} mb={2}>Monthly Revenue Trend</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <TrendingUpIcon color="success" />
+                <Typography variant="h6" color="success.main">
+                  +{((financialOverview.monthlyRevenue[11] - financialOverview.monthlyRevenue[0]) / financialOverview.monthlyRevenue[0] * 100).toFixed(1)}%
+                </Typography>
+                <Typography variant="body2" color="text.secondary">Year-over-year growth</Typography>
+              </Box>
+              <Typography variant="h4" color="primary">
+                UGX {financialOverview.monthlyRevenue[11].toLocaleString()}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">Latest month revenue</Typography>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent>
+              <Typography variant="h6" fontWeight={600} mb={2}>Profit Margin Trend</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                {financialOverview.profitMargins[11] > financialOverview.profitMargins[0] ? (
+                  <TrendingUpIcon color="success" />
+                ) : (
+                  <TrendingDownIcon color="error" />
+                )}
+                <Typography variant="h6" color={financialOverview.profitMargins[11] > financialOverview.profitMargins[0] ? 'success.main' : 'error.main'}>
+                  {financialOverview.profitMargins[11].toFixed(1)}%
+                </Typography>
+                <Typography variant="body2" color="text.secondary">Current profit margin</Typography>
+              </Box>
+              <Typography variant="h4" color="primary">
+                UGX {(financialOverview.monthlyRevenue[11] - financialOverview.monthlyExpenses[11]).toLocaleString()}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">Latest month profit</Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Alert severity="info" sx={{ mt: 3 }}>
+          <Typography variant="h6">Financial Insights</Typography>
+          <Typography variant="body2">
+            Your business shows strong revenue growth with {financialOverview.profitMargins[11].toFixed(1)}% profit margin. 
+            {financialOverview.profitMargins[11] > 25 ? ' Excellent profitability!' : ' Consider reviewing cost structures for improved margins.'}
+          </Typography>
+        </Alert>
+      </TabPanel>
+    </Card>
+  );
+}

@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Box, Typography, Paper, Button, Alert, Stack, Card, CardContent, Avatar, Chip, Fade, Grow } from "@mui/material";
 import { useJobs } from "../../components/JobsContext";
 import { useNotifications } from "../../components/NotificationsContext";
+import { useRouter } from "next/navigation";
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import BusinessIcon from '@mui/icons-material/Business';
@@ -11,6 +12,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 export default function SystemManagerDashboard() {
   const { jobs } = useJobs();
   const { notifications, clearNotifications } = useNotifications();
+  const router = useRouter();
 
   useEffect(() => { clearNotifications("system_manager"); }, [clearNotifications]);
 
@@ -38,6 +40,25 @@ export default function SystemManagerDashboard() {
           position: 'relative',
           overflow: 'hidden'
         }}>
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={() => router.push('/dashboard')}
+            sx={{
+              position: 'absolute',
+              top: 16,
+              left: 16,
+              zIndex: 10,
+              borderColor: 'rgba(255,255,255,0.5)',
+              color: 'white',
+              '&:hover': {
+                borderColor: 'white',
+                backgroundColor: 'rgba(255,255,255,0.1)'
+              }
+            }}
+          >
+            ← Return to Dashboard
+          </Button>
           <Box sx={{
             position: 'absolute',
             top: 0,
@@ -49,6 +70,83 @@ export default function SystemManagerDashboard() {
           }} />
           <Fade in timeout={1000}>
             <Box>
+              {/* Logo and Company Name */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 3 }}>
+                <Box sx={{ 
+                  width: 50, 
+                  height: 50, 
+                  borderRadius: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  bgcolor: 'rgba(255,255,255,0.2)'
+                }}>
+                  {/* Stanfield Logo - CSS Generated */}
+                  <Box sx={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative'
+                  }}>
+                    {/* Red geometric shape - upper left */}
+                    <Box sx={{
+                      position: 'absolute',
+                      top: '10%',
+                      left: '10%',
+                      width: '40%',
+                      height: '40%',
+                      backgroundColor: '#e53935',
+                      clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)',
+                      zIndex: 2
+                    }} />
+                    
+                    {/* Dark gray geometric shape - lower right */}
+                    <Box sx={{
+                      position: 'absolute',
+                      bottom: '10%',
+                      right: '10%',
+                      width: '40%',
+                      height: '40%',
+                      backgroundColor: '#424242',
+                      clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%)',
+                      zIndex: 2
+                    }} />
+                    
+                    {/* Diagonal line connecting the shapes */}
+                    <Box sx={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      width: '80%',
+                      height: '3px',
+                      backgroundColor: '#1976d2',
+                      transform: 'translate(-50%, -50%) rotate(45deg)',
+                      zIndex: 1
+                    }} />
+                  </Box>
+                  <Box sx={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    bgcolor: 'rgba(255,255,255,0.3)', 
+                    borderRadius: 2,
+                    display: 'none',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '1.5rem'
+                  }}>
+                    SP
+                  </Box>
+                </Box>
+                <Typography variant="h5" fontWeight={600} color="white">
+                  Stanfield Property Partners
+                </Typography>
+              </Box>
+              
               <BusinessIcon sx={{ fontSize: 60, mb: 2 }} />
               <Typography variant="h3" fontWeight={700} gutterBottom>
                 System Manager Dashboard
@@ -239,25 +337,7 @@ export default function SystemManagerDashboard() {
             Quick Actions
           </Typography>
           <Stack spacing={2} direction={{ xs: "column", sm: "row" }}>
-            <Button 
-              variant="contained" 
-              sx={{
-                background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
-                px: 4,
-                py: 1.5,
-                borderRadius: 2,
-                textTransform: 'none',
-                fontSize: '1rem',
-                fontWeight: 600,
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 20px rgba(0,0,0,0.2)'
-                }
-              }}
-            >
-              Add New Client
-            </Button>
+
             <Button 
               variant="outlined" 
               sx={{

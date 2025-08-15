@@ -1,202 +1,450 @@
-"use client";
-import React, { createContext, useContext, useState, ReactNode } from "react";
+'use client';
 
-export type AssetType = "land" | "car";
+import React, { createContext, useContext, useState } from 'react';
 
 export interface Job {
   id: string;
   clientName: string;
-  assetType: AssetType;
-  assetDetails: Record<string, string>;
+  clientInfo: {
+    clientType: string;
+    contactNumber: string;
+    email: string;
+    address: string;
+  };
+  assetType: string;
+  assetDetails: {
+    location: string;
+    size: string;
+    propertyUse: string;
+    previousWorkHistory: string[];
+    neighborhood: string[];
+  };
+  valuationRequirements: {
+    purpose: string;
+    value: number;
+    currency: string;
+    deadline: string;
+  };
+  bankInfo: {
+    bankName: string;
+    branch: string;
+    contactPerson: string;
+    contactNumber: string;
+  };
   status: string;
-  chain: {
-    surveyor?: string;
-    qa?: string;
-    md?: string;
-    accounts?: string;
+  qaChecklist: {
+    completed: boolean;
+    items: string[];
+    notes: string;
   };
-  clientForm: {
-    createdBy: string;
-    createdAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  fieldReportData?: {
+    inspectionDate: string;
+    siteConditions: string;
+    measurements: string;
+    photos: string[];
+    notes: string;
+    documents: {
+      orthophoto: string;
+      topographic: string;
+      areaSchedule: string;
+      titleSearch: string;
+      occupancyPermit: string;
+      additionalDocs: string[];
+    };
   };
-  fieldReport?: string;
-  fieldReportBy?: string;
+  adminReviewed?: boolean;
+  adminReviewDate?: string;
+  adminReviewNotes?: string;
   qaNotes?: string;
-  mdApproval?: string;
+  mdApproval?: boolean;
   paymentReceived?: boolean;
   revocationReason?: string;
+  chain: string[];
 }
 
 interface JobsContextType {
   jobs: Job[];
-  addJob: (job: Omit<Job, "id" | "status" | "chain" | "fieldReport" | "fieldReportBy" | "qaNotes" | "mdApproval" | "paymentReceived" | "clientForm"> & { createdBy: string }) => void;
-  updateJob: (id: string, update: Partial<Job>) => void;
+  addJob: (job: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateJob: (id: string, updates: Partial<Job>) => void;
+  deleteJob: (id: string) => void;
+  getJobsByStatus: (status: string) => Job[];
+  getJobsByBank: (bankName: string) => Job[];
+  getJobsByNeighborhood: (neighborhood: string) => Job[];
+  getBankStatistics: () => { [key: string]: number };
+  getAllBanks: () => string[];
 }
 
 const JobsContext = createContext<JobsContextType | undefined>(undefined);
 
-export function JobsProvider({ children }: { children: ReactNode }) {
-  // Pre-load dummy data to demonstrate the complete workflow
+export const useJobs = () => {
+  const context = useContext(JobsContext);
+  if (!context) {
+    throw new Error('useJobs must be used within a JobsProvider');
+  }
+  return context;
+};
+
+export const JobsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [jobs, setJobs] = useState<Job[]>([
     {
-      id: "job-1",
-      clientName: "Equity Bank",
-      assetType: "land",
-      assetDetails: { location: "Kampala", landTitle: "LT1234", plotNo: "45A", size: "2", make: "", model: "", regNo: "", year: "" },
-      status: "pending payment",
-      chain: {
-        surveyor: "John Surveyor",
-        qa: "Sarah QA Officer",
-        md: "Dr. Michael Director"
+      id: 'job-1',
+      clientName: 'ABC Bank Limited',
+      clientInfo: {
+        clientType: 'Financial Institution',
+        contactNumber: '+256 700 123 456',
+        email: 'loans@abcbank.ug',
+        address: 'Plot 123, Kampala Road, Kampala'
       },
-      clientForm: {
-        createdBy: "Admin Jane",
-        createdAt: "2024-06-01T09:00:00Z"
+      assetType: 'Commercial Property',
+      assetDetails: {
+        location: 'Nakasero, Kampala',
+        size: '2,500 sqm',
+        propertyUse: 'Office Building',
+        previousWorkHistory: ['Valuation 2022', 'Inspection 2021'],
+        neighborhood: ['Nakasero', 'Kololo', 'Old Kampala']
       },
-      fieldReport: "Site inspection completed. Land is in good condition with proper access roads. GPS coordinates recorded. Photos taken of all boundaries. Soil samples collected for analysis. No encroachments detected.",
-      fieldReportBy: "John Surveyor",
-      qaNotes: "Field report is comprehensive and accurate. All measurements verified. Photos are clear and properly documented. GPS coordinates match official records. Report approved for MD review.",
-      mdApproval: "Approved",
-      paymentReceived: false,
-      revocationReason: undefined
+      valuationRequirements: {
+        purpose: 'Mortgage Security',
+        value: 850000000,
+        currency: 'UGX',
+        deadline: '2024-02-15'
+      },
+      bankInfo: {
+        bankName: 'ABC Bank',
+        branch: 'Kampala Main',
+        contactPerson: 'John Muwonge',
+        contactNumber: '+256 700 123 456'
+      },
+      status: 'pending QA',
+      qaChecklist: {
+        completed: false,
+        items: ['Field Report Review', 'Document Verification', 'Value Assessment'],
+        notes: 'Field inspection completed, awaiting QA review'
+      },
+      createdAt: '2024-01-15T10:00:00Z',
+      updatedAt: '2024-01-20T14:30:00Z',
+      fieldReportData: {
+        inspectionDate: '2024-01-20',
+        siteConditions: 'Excellent - Well maintained commercial building with modern amenities',
+        measurements: 'Length: 50m, Width: 50m, Height: 15m',
+        photos: ['photo1.jpg', 'photo2.jpg', 'photo3.jpg'],
+        notes: 'Property in prime location with high rental yields. Building condition is excellent with modern finishes.',
+        documents: {
+          orthophoto: 'orthophoto_job1.pdf',
+          topographic: 'topographic_job1.pdf',
+          areaSchedule: 'area_schedule_job1.pdf',
+          titleSearch: 'title_search_job1.pdf',
+          occupancyPermit: 'occupancy_permit_job1.pdf',
+          additionalDocs: ['site_plan_job1.pdf', 'structural_report_job1.pdf']
+        }
+      },
+      adminReviewed: true,
+      adminReviewDate: '2024-01-21T09:00:00Z',
+      adminReviewNotes: 'Field report comprehensive and well documented. Ready for QA review.',
+      chain: ['admin', 'field_team', 'qa_officer']
     },
     {
-      id: "job-2", 
-      clientName: "Stanbic Bank",
-      assetType: "car",
-      assetDetails: { location: "", landTitle: "", plotNo: "", size: "", make: "Toyota", model: "Corolla", regNo: "UAA123X", year: "2018" },
-      status: "pending QA",
-      chain: {
-        surveyor: "Alice Field Inspector"
+      id: 'job-2',
+      clientName: 'XYZ Development Company',
+      clientInfo: {
+        clientType: 'Private Company',
+        contactNumber: '+256 700 234 567',
+        email: 'info@xyzdev.ug',
+        address: 'Plot 456, Entebbe Road, Kampala'
       },
-      clientForm: {
-        createdBy: "Admin Jane",
-        createdAt: "2024-06-02T10:00:00Z"
+      assetType: 'Residential Property',
+      assetDetails: {
+        location: 'Kololo, Kampala',
+        size: '1,200 sqm',
+        propertyUse: 'Residential Villa',
+        previousWorkHistory: ['Site Survey 2023'],
+        neighborhood: ['Kololo', 'Nakasero', 'Old Kampala']
       },
-      fieldReport: "Vehicle inspection completed. Engine runs smoothly, no major damage detected. Mileage verified at 45,000 km. Interior in good condition. All documents present and valid. Photos taken of all sides and engine compartment.",
-      fieldReportBy: "Alice Field Inspector",
-      qaNotes: "QA: All checks passed. Ready for MD review.",
-      mdApproval: undefined,
-      paymentReceived: false,
-      revocationReason: undefined
+      valuationRequirements: {
+        purpose: 'Insurance Assessment',
+        value: 450000000,
+        currency: 'UGX',
+        deadline: '2024-02-20'
+      },
+      bankInfo: {
+        bankName: 'XYZ Bank',
+        branch: 'Kololo Branch',
+        contactPerson: 'Sarah Nalukenge',
+        contactNumber: '+256 700 234 567'
+      },
+      status: 'pending fieldwork',
+      qaChecklist: {
+        completed: false,
+        items: ['Site Inspection', 'Document Collection', 'Initial Assessment'],
+        notes: 'New assignment, awaiting field team inspection'
+      },
+      createdAt: '2024-01-22T08:00:00Z',
+      updatedAt: '2024-01-22T08:00:00Z',
+      chain: ['admin', 'field_team']
     },
     {
-      id: "job-3",
-      clientName: "Private Client - Mr. Ochieng",
-      assetType: "land", 
-      assetDetails: { location: "Entebbe", landTitle: "LT5678", plotNo: "12B", size: "1.5", make: "", model: "", regNo: "", year: "" },
-      status: "pending fieldwork",
-      chain: {},
-      clientForm: {
-        createdBy: "Admin Jane",
-        createdAt: "2024-06-03T11:00:00Z"
+      id: 'job-3',
+      clientName: 'DEF Microfinance',
+      clientInfo: {
+        clientType: 'Microfinance Institution',
+        contactNumber: '+256 700 345 678',
+        email: 'loans@defmicro.ug',
+        address: 'Plot 789, Jinja Road, Kampala'
       },
-      fieldReport: undefined,
-      fieldReportBy: undefined,
-      qaNotes: undefined,
-      mdApproval: undefined,
-      paymentReceived: false,
-      revocationReason: undefined
+      assetType: 'Vacant Land',
+      assetDetails: {
+        location: 'Ntinda, Kampala',
+        size: '5,000 sqm',
+        propertyUse: 'Development Land',
+        previousWorkHistory: ['Boundary Survey 2022'],
+        neighborhood: ['Ntinda', 'Kisaasi', 'Bukoto']
+      },
+      valuationRequirements: {
+        purpose: 'Loan Security',
+        value: 120000000,
+        currency: 'UGX',
+        deadline: '2024-02-25'
+      },
+      bankInfo: {
+        bankName: 'DEF Bank',
+        branch: 'Ntinda Branch',
+        contactPerson: 'Michael Kato',
+        contactNumber: '+256 700 345 678'
+      },
+      status: 'pending MD approval',
+      qaChecklist: {
+        completed: true,
+        items: ['Field Report Review', 'Document Verification', 'Value Assessment', 'QA Approval'],
+        notes: 'QA review completed, awaiting MD final approval'
+      },
+      createdAt: '2024-01-10T09:00:00Z',
+      updatedAt: '2024-01-25T16:00:00Z',
+      fieldReportData: {
+        inspectionDate: '2024-01-18',
+        siteConditions: 'Good - Flat land suitable for development, good road access',
+        measurements: 'Length: 100m, Width: 50m',
+        photos: ['photo1.jpg', 'photo2.jpg'],
+        notes: 'Prime development land with excellent road access. Suitable for residential or commercial development.',
+        documents: {
+          orthophoto: 'orthophoto_job3.pdf',
+          topographic: 'topographic_job3.pdf',
+          areaSchedule: 'area_schedule_job3.pdf',
+          titleSearch: 'title_search_job3.pdf',
+          occupancyPermit: 'N/A',
+          additionalDocs: ['zoning_report_job3.pdf', 'soil_test_job3.pdf']
+        }
+      },
+      adminReviewed: true,
+      adminReviewDate: '2024-01-19T10:00:00Z',
+      adminReviewNotes: 'Field report approved and forwarded to QA.',
+      qaNotes: 'All documents verified. Valuation methodology sound. Recommended for approval.',
+      chain: ['admin', 'field_team', 'qa_officer', 'md']
     },
     {
-      id: "job-4",
-      clientName: "Centenary Bank",
-      assetType: "land",
-      assetDetails: { location: "Jinja", landTitle: "LT9999", plotNo: "99C", size: "3", make: "", model: "", regNo: "", year: "" },
-      status: "pending MD approval",
-      chain: {
-        surveyor: "David Field Team",
-        qa: "Maria Quality Assurance"
+      id: 'job-4',
+      clientName: 'GHI Savings Cooperative',
+      clientInfo: {
+        clientType: 'Cooperative Society',
+        contactNumber: '+256 700 456 789',
+        email: 'info@ghisavings.ug',
+        address: 'Plot 321, Masaka Road, Kampala'
       },
-      clientForm: {
-        createdBy: "Admin Jane",
-        createdAt: "2024-06-04T12:00:00Z"
+      assetType: 'Institutional Property',
+      assetDetails: {
+        location: 'Makindye, Kampala',
+        size: '3,000 sqm',
+        propertyUse: 'School Building',
+        previousWorkHistory: ['Maintenance Assessment 2023'],
+        neighborhood: ['Makindye', 'Nsambya', 'Kabalagala']
       },
-      fieldReport: "Comprehensive land survey completed. Property boundaries clearly marked. Soil quality assessment done. Environmental impact minimal. All regulatory requirements met. Detailed measurements and photos included.",
-      fieldReportBy: "David Field Team",
-      qaNotes: "QA: Excellent work. Ready for MD approval.",
-      mdApproval: undefined,
-      paymentReceived: false,
-      revocationReason: undefined
+      valuationRequirements: {
+        purpose: 'Asset Valuation',
+        value: 650000000,
+        currency: 'UGX',
+        deadline: '2024-03-01'
+      },
+      bankInfo: {
+        bankName: 'GHI Bank',
+        branch: 'Makindye Branch',
+        contactPerson: 'Grace Namukasa',
+        contactNumber: '+256 700 456 789'
+      },
+      status: 'pending fieldwork',
+      qaChecklist: {
+        completed: false,
+        items: ['Site Inspection', 'Document Collection', 'Initial Assessment'],
+        notes: 'New assignment, awaiting field team inspection'
+      },
+      createdAt: '2024-01-23T11:00:00Z',
+      updatedAt: '2024-01-23T11:00:00Z',
+      chain: ['admin', 'field_team']
     },
     {
-      id: "job-5",
-      clientName: "Demo Motors Ltd",
-      assetType: "car",
-      assetDetails: { location: "", landTitle: "", plotNo: "", size: "", make: "Honda", model: "Civic", regNo: "UBB456Y", year: "2020" },
-      status: "complete",
-      chain: {
-        surveyor: "Peter Vehicle Inspector",
-        qa: "Lisa QA Specialist", 
-        md: "Dr. Michael Director",
-        accounts: "Finance Team"
+      id: 'job-5',
+      clientName: 'JKL Investment Group',
+      clientInfo: {
+        clientType: 'Investment Company',
+        contactNumber: '+256 700 567 890',
+        email: 'investments@jklgroup.ug',
+        address: 'Plot 654, Mbarara Road, Kampala'
       },
-      clientForm: {
-        createdBy: "Admin Jane",
-        createdAt: "2024-06-05T13:00:00Z"
+      assetType: 'Commercial Property',
+      assetDetails: {
+        location: 'Industrial Area, Kampala',
+        size: '8,000 sqm',
+        propertyUse: 'Warehouse Complex',
+        previousWorkHistory: ['Rental Assessment 2023', 'Structural Survey 2022'],
+        neighborhood: ['Industrial Area', 'Nakawa', 'Luzira']
       },
-      fieldReport: "Vehicle in excellent condition. Low mileage at 25,000 km. All systems functioning properly. Recent service history verified. Market value assessment completed.",
-      fieldReportBy: "Peter Vehicle Inspector",
-      qaNotes: "QA: All documentation verified. Ready for final approval.",
-      mdApproval: "Approved for payment",
+      valuationRequirements: {
+        purpose: 'Investment Analysis',
+        value: 1200000000,
+        currency: 'UGX',
+        deadline: '2024-03-05'
+      },
+      bankInfo: {
+        bankName: 'JKL Bank',
+        branch: 'Industrial Branch',
+        contactPerson: 'David Ssemwogerere',
+        contactNumber: '+256 700 567 890'
+      },
+      status: 'pending fieldwork',
+      qaChecklist: {
+        completed: false,
+        items: ['Site Inspection', 'Document Collection', 'Initial Assessment'],
+        notes: 'New assignment, awaiting field team inspection'
+      },
+      createdAt: '2024-01-24T14:00:00Z',
+      updatedAt: '2024-01-24T14:00:00Z',
+      chain: ['admin', 'field_team']
+    },
+    {
+      id: 'job-6',
+      clientName: 'MNO Real Estate',
+      clientInfo: {
+        clientType: 'Real Estate Company',
+        contactNumber: '+256 700 678 901',
+        email: 'sales@mnoreal.ug',
+        address: 'Plot 987, Hoima Road, Kampala'
+      },
+      assetType: 'Residential Property',
+      assetDetails: {
+        location: 'Bukoto, Kampala',
+        size: '2,500 sqm',
+        propertyUse: 'Apartment Complex',
+        previousWorkHistory: ['Construction Monitoring 2023'],
+        neighborhood: ['Bukoto', 'Ntinda', 'Kisaasi']
+      },
+      valuationRequirements: {
+        purpose: 'Market Valuation',
+        value: 850000000,
+        currency: 'UGX',
+        deadline: '2024-03-10'
+      },
+      bankInfo: {
+        bankName: 'MNO Bank',
+        branch: 'Bukoto Branch',
+        contactPerson: 'Patience Nalubega',
+        contactNumber: '+256 700 678 901'
+      },
+      status: 'complete',
+      qaChecklist: {
+        completed: true,
+        items: ['Field Report Review', 'Document Verification', 'Value Assessment', 'QA Approval', 'MD Approval'],
+        notes: 'Project completed successfully'
+      },
+      createdAt: '2024-01-05T08:00:00Z',
+      updatedAt: '2024-01-30T17:00:00Z',
+      fieldReportData: {
+        inspectionDate: '2024-01-15',
+        siteConditions: 'Excellent - Newly constructed apartment complex with modern amenities',
+        measurements: 'Length: 80m, Width: 31.25m, Height: 25m',
+        photos: ['photo1.jpg', 'photo2.jpg', 'photo3.jpg', 'photo4.jpg'],
+        notes: 'High-quality residential development with excellent rental potential. Construction quality is superior.',
+        documents: {
+          orthophoto: 'orthophoto_job6.pdf',
+          topographic: 'topographic_job6.pdf',
+          areaSchedule: 'area_schedule_job6.pdf',
+          titleSearch: 'title_search_job6.pdf',
+          occupancyPermit: 'occupancy_permit_job6.pdf',
+          additionalDocs: ['construction_certificate_job6.pdf', 'architectural_plans_job6.pdf', 'final_inspection_job6.pdf']
+        }
+      },
+      adminReviewed: true,
+      adminReviewDate: '2024-01-16T09:00:00Z',
+      adminReviewNotes: 'Field report comprehensive and well documented. Ready for QA review.',
+      qaNotes: 'All documents verified. Valuation methodology sound. Recommended for approval.',
+      mdApproval: true,
       paymentReceived: true,
-      revocationReason: undefined
-    },
-    {
-      id: "job-demo-1",
-      clientName: "Demo Client",
-      assetType: "land",
-      assetDetails: { location: "Kampala", landTitle: "LT0001", plotNo: "1A", size: "1", make: "", model: "", regNo: "", year: "" },
-      status: "pending fieldwork",
-      chain: {},
-      clientForm: {
-        createdBy: "Admin Jane",
-        createdAt: "2024-06-10T09:00:00Z"
-      },
-      fieldReport: undefined,
-      fieldReportBy: undefined,
-      qaNotes: undefined,
-      mdApproval: undefined,
-      paymentReceived: false,
-      revocationReason: undefined
+      chain: ['admin', 'field_team', 'qa_officer', 'md', 'accounts']
     }
   ]);
 
-  const addJob = (job: Omit<Job, "id" | "status" | "chain" | "fieldReport" | "fieldReportBy" | "qaNotes" | "mdApproval" | "paymentReceived" | "clientForm"> & { createdBy: string }) => {
-    setJobs(jobs => [
-      ...jobs,
-      {
-        ...job,
-        id: Math.random().toString(36).slice(2),
-        status: "pending fieldwork",
-        chain: {},
-        clientForm: {
-          createdBy: job.createdBy,
-          createdAt: new Date().toISOString(),
-        },
-              fieldReport: undefined,
-        fieldReportBy: undefined,
-        qaNotes: undefined,
-        mdApproval: undefined,
-        paymentReceived: false,
-        revocationReason: undefined
-      },
-    ]);
+  const addJob = (jobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const newJob: Job = {
+      ...jobData,
+      id: `job-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setJobs(prev => [...prev, newJob]);
   };
 
-  const updateJob = (id: string, update: Partial<Job>) => {
-    setJobs(jobs => jobs.map(j => (j.id === id ? { ...j, ...update } : j)));
+  const updateJob = (id: string, updates: Partial<Job>) => {
+    setJobs(prev => prev.map(job => 
+      job.id === id 
+        ? { ...job, ...updates, updatedAt: new Date().toISOString() }
+        : job
+    ));
+  };
+
+  const deleteJob = (id: string) => {
+    setJobs(prev => prev.filter(job => job.id !== id));
+  };
+
+  const getJobsByStatus = (status: string) => {
+    return jobs.filter(job => job.status === status);
+  };
+
+  const getJobsByBank = (bankName: string) => {
+    return jobs.filter(job => job.bankInfo.bankName === bankName);
+  };
+
+  const getJobsByNeighborhood = (neighborhood: string) => {
+    return jobs.filter(job => 
+      job.assetDetails.neighborhood.includes(neighborhood)
+    );
+  };
+
+  const getBankStatistics = () => {
+    const stats: { [key: string]: number } = {};
+    jobs.forEach(job => {
+      const bank = job.bankInfo.bankName;
+      stats[bank] = (stats[bank] || 0) + 1;
+    });
+    return stats;
+  };
+
+  const getAllBanks = () => {
+    const banks = new Set(jobs.map(job => job.bankInfo.bankName));
+    return Array.from(banks);
   };
 
   return (
-    <JobsContext.Provider value={{ jobs, addJob, updateJob }}>
+    <JobsContext.Provider value={{
+      jobs,
+      addJob,
+      updateJob,
+      deleteJob,
+      getJobsByStatus,
+      getJobsByBank,
+      getJobsByNeighborhood,
+      getBankStatistics,
+      getAllBanks,
+    }}>
       {children}
     </JobsContext.Provider>
   );
-}
-
-export function useJobs() {
-  const ctx = useContext(JobsContext);
-  if (!ctx) throw new Error("useJobs must be used within a JobsProvider");
-  return ctx;
-} 
+}; 

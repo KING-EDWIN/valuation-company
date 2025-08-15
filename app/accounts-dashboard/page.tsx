@@ -1,490 +1,258 @@
-"use client";
-import { useEffect, useState } from "react";
-import { Box, Typography, Paper, Button, Alert, Stack, Card, CardContent, Avatar, Chip, Fade, Grow, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
-import { useJobs } from "../../components/JobsContext";
-import { useNotifications } from "../../components/NotificationsContext";
-import PaidIcon from '@mui/icons-material/Paid';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+'use client';
+
+import React, { useState } from 'react';
+import {
+  Box,
+  Typography,
+  Paper,
+  Button,
+  Card,
+  CardContent,
+  Stack,
+  Chip,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  InputAdornment,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Divider,
+  Grow
+} from '@mui/material';
+import {
+  AccountBalance as AccountBalanceIcon,
+  Paid as PaidIcon,
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
+  ArrowBack as ArrowBackIcon,
+  Payment as PaymentIcon
+} from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
 
 export default function AccountsDashboard() {
-  const { jobs, updateJob, addJob } = useJobs();
-  const { notifications, clearNotifications } = useNotifications();
-  const [submitted, setSubmitted] = useState<Record<string, boolean>>({});
-  const [openFormJobId, setOpenFormJobId] = useState<string | null>(null);
-  const [openReportJobId, setOpenReportJobId] = useState<string | null>(null);
-  const [openQaJobId, setOpenQaJobId] = useState<string | null>(null);
-  const [openMdJobId, setOpenMdJobId] = useState<string | null>(null);
+  const router = useRouter();
+  const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<{ id: string; clientName: string; assetType: string; location: string; amount: number } | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState('');
 
-  useEffect(() => { clearNotifications("accounts"); }, [clearNotifications]);
+  // Mock data for demonstration
+  const mockJobs = [
+    {
+      id: '1',
+      clientName: 'John Doe',
+      assetType: 'Land',
+      status: 'pending payment',
+      amount: 5000000,
+      location: 'Kampala'
+    },
+    {
+      id: '2',
+      clientName: 'Jane Smith',
+      assetType: 'Building',
+      status: 'completed',
+      amount: 8000000,
+      location: 'Entebbe'
+    },
+    {
+      id: '3',
+      clientName: 'Mike Johnson',
+      assetType: 'Vehicle',
+      status: 'pending payment',
+      amount: 3000000,
+      location: 'Jinja'
+    }
+  ];
 
-  // Add more dummy jobs for demo
-  const handleLoadDemo = () => {
-    addJob({
-      clientName: "Demo Bank",
-      assetType: "land",
-      assetDetails: { location: "Jinja", landTitle: "LT9999", plotNo: "99C", size: "3", make: "", model: "", regNo: "", year: "" },
-      createdBy: "Demo Admin"
-    });
-    addJob({
-      clientName: "Demo Motors",
-      assetType: "car",
-      assetDetails: { location: "", landTitle: "", plotNo: "", size: "", make: "Honda", model: "Civic", regNo: "UBB456Y", year: "2020" },
-      createdBy: "Demo Admin"
-    });
+  const pendingJobs = mockJobs.filter(job => job.status === 'pending payment');
+  const completedJobs = mockJobs.filter(job => job.status === 'completed');
+
+  const handlePayment = (job: { id: string; clientName: string; assetType: string; location: string; amount: number }) => {
+    setSelectedJob(job);
+    setPaymentAmount(job.amount.toString());
+    setOpenPaymentDialog(true);
   };
 
-  const pendingJobs = jobs.filter(j => j.status === "pending payment");
-  const completedJobs = jobs.filter(j => j.status === "complete");
-
-  const handlePayment = (id: string) => {
-    updateJob(id, {
-      status: "complete",
-      paymentReceived: true,
-      chain: { accounts: "Accounts" },
-    });
-    setSubmitted(s => ({ ...s, [id]: true }));
+  const processPayment = () => {
+    if (selectedJob && paymentAmount) {
+      // Here you would typically update the job status
+      console.log(`Processing payment of ${paymentAmount} for job ${selectedJob.id}`);
+      setOpenPaymentDialog(false);
+      setSelectedJob(null);
+      setPaymentAmount('');
+    }
   };
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%)',
-      py: 4
-    }}>
-      <Box sx={{ px: 4 }}>
-        {/* Hero Section */}
-        <Box sx={{ 
-          background: 'linear-gradient(135deg, #6d4c41 0%, #8d6e63 100%)',
-          color: 'white',
-          py: 6,
-          px: 4,
-          borderRadius: 4,
-          mb: 4,
-          textAlign: 'center',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          <Box sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-            opacity: 0.3
-          }} />
-          <Fade in timeout={1000}>
-            <Box>
-              <AccountBalanceIcon sx={{ fontSize: 60, mb: 2 }} />
-              <Typography variant="h3" fontWeight={700} gutterBottom>
-                Accounts Dashboard
-              </Typography>
-              <Typography variant="h6" sx={{ opacity: 0.9 }}>
-                Manage payments and financial processing
-              </Typography>
-            </Box>
-          </Fade>
-        </Box>
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={3} mb={4} justifyContent="center">
-        <Grow in timeout={800}>
-          <Card sx={{ 
-            minHeight: 140,
-            minWidth: 200,
-            background: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)',
-            borderRadius: 3,
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              transform: 'translateY(-4px)',
-              boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
-            }
-          }}>
-            <CardContent sx={{ textAlign: 'center', py: 3 }}>
-              <PaidIcon sx={{ fontSize: 40, color: '#f57c00', mb: 1 }} />
-              <Typography variant="h6" color="text.secondary" gutterBottom>Pending Payments</Typography>
-              <Typography variant="h3" fontWeight={700} color="warning.main">{pendingJobs.length}</Typography>
-            </CardContent>
-          </Card>
-        </Grow>
-        <Grow in timeout={1000}>
-          <Card sx={{ 
-            minHeight: 140,
-            minWidth: 200,
-            background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
-            borderRadius: 3,
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              transform: 'translateY(-4px)',
-              boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
-            }
-          }}>
-            <CardContent sx={{ textAlign: 'center', py: 3 }}>
-              <CheckCircleIcon sx={{ fontSize: 40, color: '#2e7d32', mb: 1 }} />
-              <Typography variant="h6" color="text.secondary" gutterBottom>Completed Payments</Typography>
-              <Typography variant="h3" fontWeight={700} color="success.main">{completedJobs.length}</Typography>
-            </CardContent>
-          </Card>
-        </Grow>
-        <Grow in timeout={1200}>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5' }}>
+      {/* Header */}
+      <Paper sx={{ p: 3, mb: 4, bgcolor: 'primary.main', color: 'white' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
           <Button 
-            variant="outlined" 
-            onClick={handleLoadDemo} 
-            sx={{ 
-              minHeight: 140,
-              minWidth: 200,
-              borderColor: '#6d4c41',
-              color: '#6d4c41',
-              borderRadius: 3,
-              textTransform: 'none',
-              fontSize: '1rem',
-              fontWeight: 600,
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                borderColor: '#5d4037',
-                backgroundColor: 'rgba(109, 76, 65, 0.04)',
-                transform: 'translateY(-4px)',
-                boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
-              }
-            }}
+            onClick={() => router.back()}
+            sx={{ color: 'white', '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' } }}
           >
-            Add Demo Jobs
+            <ArrowBackIcon />
           </Button>
-        </Grow>
-      </Stack>
-      {notifications.accounts.length > 0 && (
-        <Fade in timeout={1200}>
-          <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
-            {notifications.accounts.map(n => <div key={n.id}>{n.message}</div>)}
-          </Alert>
-        </Fade>
-      )}
-      <Typography variant="h5" mb={3} fontWeight={600} color="text.primary">Jobs Needing Payment</Typography>
-      <Stack spacing={3}>
-        {pendingJobs.length === 0 && (
-          <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 3 }}>
-            <Typography variant="h6" color="text.secondary">
-              No jobs pending payment.
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+              Accounts Dashboard
             </Typography>
-          </Paper>
-        )}
-        {pendingJobs.map((job, index) => (
-          <Grow in timeout={1400 + index * 200} key={job.id}>
-            <Paper sx={{ 
-              p: 4, 
-              borderLeft: '6px solid #6d4c41', 
-              borderRadius: 3,
-              background: 'linear-gradient(135deg, #ffffff 0%, #fafbfc 100%)',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateX(4px)',
-                boxShadow: '0 6px 25px rgba(0,0,0,0.12)'
-              }
-            }}>
-              <Stack direction="row" alignItems="center" spacing={3}>
-                <Avatar sx={{ 
-                  bgcolor: '#6d4c41', 
-                  color: '#fff',
-                  width: 56,
-                  height: 56,
-                  fontSize: '1.5rem',
-                  fontWeight: 600
-                }}>
-                  {job.clientName[0]}
-                </Avatar>
-                <Box flex={1}>
-                  <Typography variant="h6" fontWeight={600} color="text.primary" gutterBottom>
-                    {job.clientName} ({job.assetType.toUpperCase()})
+            <Typography variant="subtitle1" sx={{ opacity: 0.9 }}>
+              Manage payments and financial processing
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+
+      {/* Main Content */}
+      <Box sx={{ p: 3 }}>
+        <Grow in timeout={800}>
+          <Box>
+            {/* Summary Cards */}
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ mb: 4 }}>
+              <Card sx={{ flex: 1, bgcolor: 'warning.light', color: 'warning.contrastText' }}>
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <PaidIcon sx={{ fontSize: 40, mb: 1 }} />
+                  <Typography variant="h4" fontWeight={700}>
+                    {pendingJobs.length}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" mb={1}>
-                    Asset: {Object.values(job.assetDetails).filter(Boolean).join(", ")}
+                  <Typography variant="h6">Pending Payments</Typography>
+                </CardContent>
+              </Card>
+
+              <Card sx={{ flex: 1, bgcolor: 'success.light', color: 'success.contrastText' }}>
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <CheckCircleIcon sx={{ fontSize: 40, mb: 1 }} />
+                  <Typography variant="h4" fontWeight={700}>
+                    {completedJobs.length}
                   </Typography>
-                  <Chip 
-                    label="PENDING PAYMENT" 
-                    size="small" 
-                    sx={{ 
-                      bgcolor: '#6d4c41',
-                      color: 'white',
-                      fontWeight: 600,
-                      mb: 1
-                    }} 
-                  />
-                  <Box mt={2}>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                      Chain of Custody:
-                    </Typography>
-                    <Stack direction="row" spacing={1} mt={1} flexWrap="wrap" gap={1}>
-                      {job.chain.surveyor && (
-                        <Chip 
-                          label={`Surveyor: ${job.chain.surveyor}`} 
-                          size="small" 
-                          color="info" 
-                          variant="outlined"
-                          sx={{ fontWeight: 500 }}
+                  <Typography variant="h6">Completed Jobs</Typography>
+                </CardContent>
+              </Card>
+
+              <Card sx={{ flex: 1, bgcolor: 'info.light', color: 'info.contrastText' }}>
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <AccountBalanceIcon sx={{ fontSize: 40, mb: 1 }} />
+                  <Typography variant="h4" fontWeight={700}>
+                    UGX {mockJobs.reduce((sum, job) => sum + job.amount, 0).toLocaleString()}
+                  </Typography>
+                  <Typography variant="h6">Total Value</Typography>
+                </CardContent>
+              </Card>
+            </Stack>
+
+            {/* Pending Payments */}
+            <Paper sx={{ p: 3, mb: 4 }}>
+              <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <WarningIcon color="warning" />
+                Pending Payments
+              </Typography>
+              
+              {pendingJobs.length === 0 ? (
+                <Alert severity="info">No pending payments at this time.</Alert>
+              ) : (
+                <List>
+                  {pendingJobs.map((job, index) => (
+                    <React.Fragment key={job.id}>
+                      <ListItem>
+                        <ListItemIcon>
+                          <PaymentIcon color="warning" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={`${job.clientName} - ${job.assetType}`}
+                          secondary={`Location: ${job.location} | Amount: UGX ${job.amount.toLocaleString()}`}
                         />
-                      )}
-                      {job.chain.qa && (
-                        <Chip 
-                          label={`QA: ${job.chain.qa}`} 
-                          size="small" 
-                          color="secondary" 
-                          variant="outlined"
-                          sx={{ fontWeight: 500 }}
-                        />
-                      )}
-                      {job.chain.md && (
-                        <Chip 
-                          label={`MD: ${job.chain.md}`} 
-                          size="small" 
-                          color="error" 
-                          variant="outlined"
-                          sx={{ fontWeight: 500 }}
-                        />
-                      )}
-                      {job.chain.accounts && (
-                        <Chip 
-                          label={`Accounts: ${job.chain.accounts}`} 
-                          size="small" 
-                          color="success" 
-                          variant="outlined"
-                          sx={{ fontWeight: 500 }}
-                        />
-                      )}
-                    </Stack>
-                  </Box>
-                </Box>
-                <Stack direction="row" spacing={2} mb={2}>
-                  <Button variant="outlined" onClick={() => setOpenFormJobId(job.id)} sx={{ fontWeight: 600 }}>View Client Form</Button>
-                  <Button variant="outlined" onClick={() => setOpenReportJobId(job.id)} sx={{ fontWeight: 600 }}>View Field Report</Button>
-                  <Button variant="outlined" onClick={() => setOpenQaJobId(job.id)} sx={{ fontWeight: 600 }}>View QA Notes</Button>
-                  <Button variant="outlined" onClick={() => setOpenMdJobId(job.id)} sx={{ fontWeight: 600 }}>View MD Approval</Button>
-                </Stack>
-                <Dialog open={openFormJobId === job.id} onClose={() => setOpenFormJobId(null)} maxWidth="sm" fullWidth>
-                  <DialogTitle>Client Form</DialogTitle>
-                  <DialogContent>
-                    <Typography variant="subtitle1" fontWeight={600}>Client Name: {job.clientName}</Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>Asset Type: {job.assetType.toUpperCase()}</Typography>
-                    {Object.entries(job.assetDetails).map(([k, v]) => v && (
-                      <Typography key={k} variant="body2">{k.charAt(0).toUpperCase() + k.slice(1)}: {v}</Typography>
-                    ))}
-                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>Prepared by: {job.clientForm?.createdBy || 'Admin'}</Typography>
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={() => setOpenFormJobId(null)}>Close</Button>
-                  </DialogActions>
-                </Dialog>
-                <Dialog open={openReportJobId === job.id} onClose={() => setOpenReportJobId(null)} maxWidth="sm" fullWidth>
-                  <DialogTitle>Field Report</DialogTitle>
-                  <DialogContent>
-                    <Typography variant="body2" sx={{ mb: 1 }}>{job.fieldReport || 'No report uploaded yet.'}</Typography>
-                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>Prepared by: {job.fieldReportBy || job.chain.surveyor || 'Field Team'}</Typography>
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={() => setOpenReportJobId(null)}>Close</Button>
-                  </DialogActions>
-                </Dialog>
-                <Dialog open={openQaJobId === job.id} onClose={() => setOpenQaJobId(null)} maxWidth="sm" fullWidth>
-                  <DialogTitle>QA Notes</DialogTitle>
-                  <DialogContent>
-                    <Typography variant="body2" sx={{ mb: 1 }}>{job.qaNotes || 'No QA notes yet.'}</Typography>
-                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>Prepared by: {job.chain.qa || 'QA Officer'}</Typography>
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={() => setOpenQaJobId(null)}>Close</Button>
-                  </DialogActions>
-                </Dialog>
-                <Dialog open={openMdJobId === job.id} onClose={() => setOpenMdJobId(null)} maxWidth="sm" fullWidth>
-                  <DialogTitle>MD Approval</DialogTitle>
-                  <DialogContent>
-                    <Typography variant="body2" sx={{ mb: 1 }}>{job.mdApproval || 'No MD approval yet.'}</Typography>
-                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>Prepared by: {job.chain.md || 'Managing Director'}</Typography>
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={() => setOpenMdJobId(null)}>Close</Button>
-                  </DialogActions>
-                </Dialog>
-                <Button
-                  variant="contained"
-                  disabled={submitted[job.id]}
-                  onClick={() => handlePayment(job.id)}
-                  sx={{
-                    background: 'linear-gradient(135deg, #6d4c41 0%, #8d6e63 100%)',
-                    px: 4,
-                    py: 1.5,
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 6px 20px rgba(0,0,0,0.2)'
-                    }
-                  }}
-                >
-                  Mark Payment Received
-                </Button>
-              </Stack>
-              {submitted[job.id] && (
-                <Fade in timeout={500}>
-                  <Alert severity="success" sx={{ mt: 3, borderRadius: 2 }}>
-                    Payment marked as received successfully!
-                  </Alert>
-                </Fade>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={() => handlePayment(job)}
+                        >
+                          Process Payment
+                        </Button>
+                      </ListItem>
+                      {index < pendingJobs.length - 1 && <Divider />}
+                    </React.Fragment>
+                  ))}
+                </List>
               )}
             </Paper>
-          </Grow>
-        ))}
-      </Stack>
-      <Typography variant="h5" mt={5} mb={3} fontWeight={600} color="text.primary">Completed Payments</Typography>
-      <Stack spacing={3}>
-        {completedJobs.length === 0 && (
-          <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 3 }}>
-            <Typography variant="h6" color="text.secondary">
-              No completed payments yet.
-            </Typography>
-          </Paper>
-        )}
-        {completedJobs.map((job, index) => (
-          <Grow in timeout={1600 + index * 200} key={job.id}>
-            <Paper sx={{ 
-              p: 4, 
-              borderLeft: '6px solid #43a047', 
-              borderRadius: 3, 
-              background: 'linear-gradient(135deg, #f1f8e9 0%, #e8f5e8 100%)',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateX(4px)',
-                boxShadow: '0 6px 25px rgba(0,0,0,0.12)'
-              }
-            }}>
-              <Stack direction="row" alignItems="center" spacing={3}>
-                <Avatar sx={{ 
-                  bgcolor: '#43a047', 
-                  color: '#fff',
-                  width: 56,
-                  height: 56,
-                  fontSize: '1.5rem',
-                  fontWeight: 600
-                }}>
-                  {job.clientName[0]}
-                </Avatar>
-                <Box flex={1}>
-                  <Typography variant="h6" fontWeight={600} color="text.primary" gutterBottom>
-                    {job.clientName} ({job.assetType.toUpperCase()})
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" mb={1}>
-                    Asset: {Object.values(job.assetDetails).filter(Boolean).join(", ")}
-                  </Typography>
-                  <Chip 
-                    label="PAYMENT COMPLETED" 
-                    size="small" 
-                    sx={{ 
-                      bgcolor: '#43a047',
-                      color: 'white',
-                      fontWeight: 600,
-                      mb: 1
-                    }} 
-                  />
-                  <Box mt={2}>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                      Chain of Custody:
-                    </Typography>
-                    <Stack direction="row" spacing={1} mt={1} flexWrap="wrap" gap={1}>
-                      {job.chain.surveyor && (
-                        <Chip 
-                          label={`Surveyor: ${job.chain.surveyor}`} 
-                          size="small" 
-                          color="info" 
-                          variant="outlined"
-                          sx={{ fontWeight: 500 }}
+
+            {/* Completed Jobs */}
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CheckCircleIcon color="success" />
+                Completed Jobs
+              </Typography>
+              
+              {completedJobs.length === 0 ? (
+                <Alert severity="info">No completed jobs at this time.</Alert>
+              ) : (
+                <List>
+                  {completedJobs.map((job, index) => (
+                    <React.Fragment key={job.id}>
+                      <ListItem>
+                        <ListItemIcon>
+                          <CheckCircleIcon color="success" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={`${job.clientName} - ${job.assetType}`}
+                          secondary={`Location: ${job.location} | Amount: UGX ${job.amount.toLocaleString()}`}
                         />
-                      )}
-                      {job.chain.qa && (
-                        <Chip 
-                          label={`QA: ${job.chain.qa}`} 
-                          size="small" 
-                          color="secondary" 
-                          variant="outlined"
-                          sx={{ fontWeight: 500 }}
-                        />
-                      )}
-                      {job.chain.md && (
-                        <Chip 
-                          label={`MD: ${job.chain.md}`} 
-                          size="small" 
-                          color="error" 
-                          variant="outlined"
-                          sx={{ fontWeight: 500 }}
-                        />
-                      )}
-                      {job.chain.accounts && (
-                        <Chip 
-                          label={`Accounts: ${job.chain.accounts}`} 
-                          size="small" 
-                          color="success" 
-                          variant="outlined"
-                          sx={{ fontWeight: 500 }}
-                        />
-                      )}
-                    </Stack>
-                  </Box>
-                </Box>
-                <Stack direction="row" spacing={2} mb={2}>
-                  <Button variant="outlined" onClick={() => setOpenFormJobId(job.id)} sx={{ fontWeight: 600 }}>View Client Form</Button>
-                  <Button variant="outlined" onClick={() => setOpenReportJobId(job.id)} sx={{ fontWeight: 600 }}>View Field Report</Button>
-                  <Button variant="outlined" onClick={() => setOpenQaJobId(job.id)} sx={{ fontWeight: 600 }}>View QA Notes</Button>
-                  <Button variant="outlined" onClick={() => setOpenMdJobId(job.id)} sx={{ fontWeight: 600 }}>View MD Approval</Button>
-                </Stack>
-                <Dialog open={openFormJobId === job.id} onClose={() => setOpenFormJobId(null)} maxWidth="sm" fullWidth>
-                  <DialogTitle>Client Form</DialogTitle>
-                  <DialogContent>
-                    <Typography variant="subtitle1" fontWeight={600}>Client Name: {job.clientName}</Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>Asset Type: {job.assetType.toUpperCase()}</Typography>
-                    {Object.entries(job.assetDetails).map(([k, v]) => v && (
-                      <Typography key={k} variant="body2">{k.charAt(0).toUpperCase() + k.slice(1)}: {v}</Typography>
-                    ))}
-                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>Prepared by: {job.clientForm?.createdBy || 'Admin'}</Typography>
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={() => setOpenFormJobId(null)}>Close</Button>
-                  </DialogActions>
-                </Dialog>
-                <Dialog open={openReportJobId === job.id} onClose={() => setOpenReportJobId(null)} maxWidth="sm" fullWidth>
-                  <DialogTitle>Field Report</DialogTitle>
-                  <DialogContent>
-                    <Typography variant="body2" sx={{ mb: 1 }}>{job.fieldReport || 'No report uploaded yet.'}</Typography>
-                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>Prepared by: {job.fieldReportBy || job.chain.surveyor || 'Field Team'}</Typography>
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={() => setOpenReportJobId(null)}>Close</Button>
-                  </DialogActions>
-                </Dialog>
-                <Dialog open={openQaJobId === job.id} onClose={() => setOpenQaJobId(null)} maxWidth="sm" fullWidth>
-                  <DialogTitle>QA Notes</DialogTitle>
-                  <DialogContent>
-                    <Typography variant="body2" sx={{ mb: 1 }}>{job.qaNotes || 'No QA notes yet.'}</Typography>
-                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>Prepared by: {job.chain.qa || 'QA Officer'}</Typography>
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={() => setOpenQaJobId(null)}>Close</Button>
-                  </DialogActions>
-                </Dialog>
-                <Dialog open={openMdJobId === job.id} onClose={() => setOpenMdJobId(null)} maxWidth="sm" fullWidth>
-                  <DialogTitle>MD Approval</DialogTitle>
-                  <DialogContent>
-                    <Typography variant="body2" sx={{ mb: 1 }}>{job.mdApproval || 'No MD approval yet.'}</Typography>
-                    <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>Prepared by: {job.chain.md || 'Managing Director'}</Typography>
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={() => setOpenMdJobId(null)}>Close</Button>
-                  </DialogActions>
-                </Dialog>
-              </Stack>
+                        <Chip label="Paid" color="success" variant="outlined" />
+                      </ListItem>
+                      {index < completedJobs.length - 1 && <Divider />}
+                    </React.Fragment>
+                  ))}
+                </List>
+              )}
             </Paper>
-          </Grow>
-        ))}
-      </Stack>
+          </Box>
+        </Grow>
       </Box>
+
+      {/* Payment Dialog */}
+      <Dialog open={openPaymentDialog} onClose={() => setOpenPaymentDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Process Payment</DialogTitle>
+        <DialogContent>
+          {selectedJob && (
+            <Box sx={{ pt: 2 }}>
+              <Typography variant="h6" gutterBottom>
+                {selectedJob.clientName} - {selectedJob.assetType}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Location: {selectedJob.location}
+              </Typography>
+              
+              <TextField
+                fullWidth
+                label="Payment Amount"
+                type="number"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">UGX</InputAdornment>,
+                }}
+                sx={{ mb: 2 }}
+              />
+              
+              <Alert severity="info">
+                This will mark the job as completed and payment received.
+              </Alert>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenPaymentDialog(false)}>Cancel</Button>
+          <Button variant="contained" onClick={processPayment}>
+            Process Payment
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
-} 
+}
