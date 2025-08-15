@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Box, Typography, TextField, Button, Alert, Paper, Stack, MenuItem, Card, CardContent } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2";
 import { useUser } from "../../components/UserContext";
 import { useRouter } from "next/navigation";
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -75,17 +74,17 @@ export default function InstructionPage() {
 
         <Paper sx={{ p: 4, borderRadius: 3 }}>
         <form onSubmit={handleSubmit}>
-            <Grid container spacing={3}>
+            <Box sx={{ display: 'grid', gap: 3 }}>
               {/* Client Information */}
-              <Grid xs={12}>
+              <Box>
                 <Card sx={{ p: 2, bgcolor: '#f8f9fa' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <PersonIcon color="primary" />
                       Client Information
                     </Typography>
-                    <Grid container spacing={2}>
-                      <Grid xs={12} md={6}>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
+                      <Box>
                         <TextField 
                           label="Full Name" 
                           name="clientName" 
@@ -94,8 +93,8 @@ export default function InstructionPage() {
                           fullWidth 
                           required 
                         />
-                      </Grid>
-                      <Grid xs={12} md={6}>
+                      </Box>
+                      <Box>
                         <TextField 
                           label="Contact Number" 
                           name="contactNumber" 
@@ -104,8 +103,8 @@ export default function InstructionPage() {
                           fullWidth 
                           required 
                         />
-                      </Grid>
-                      <Grid xs={12}>
+                      </Box>
+                      <Box sx={{ gridColumn: { xs: '1 / -1', md: '1 / -1' } }}>
                         <TextField 
                           label="Email Address" 
                           name="email" 
@@ -115,8 +114,8 @@ export default function InstructionPage() {
                           fullWidth 
                           required 
                         />
-                      </Grid>
-                    </Grid>
+                      </Box>
+                    </Box>
                   </CardContent>
                 </Card>
               </Grid>
