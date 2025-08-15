@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState } from 'react';
+import { Role } from './UserContext';
 
 export interface Notification {
   id: string;
@@ -12,8 +13,6 @@ export interface Notification {
   actionUrl?: string;
   priority: 'low' | 'medium' | 'high';
 }
-
-type Role = 'admin' | 'field_team' | 'qa_officer' | 'md' | 'accounts';
 
 interface NotificationsContextType {
   notifications: Record<Role, Notification[]>;
@@ -204,6 +203,40 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
         read: false,
         actionUrl: '/accounts-dashboard',
         priority: 'high'
+      }
+    ],
+    system_manager: [
+      {
+        id: 'system-1',
+        title: 'System Overview',
+        message: 'Daily system status report is available for review.',
+        type: 'info',
+        timestamp: '2024-01-31T08:00:00Z',
+        read: false,
+        actionUrl: '/system-manager-dashboard',
+        priority: 'medium'
+      },
+      {
+        id: 'system-2',
+        title: 'Performance Metrics',
+        message: 'Weekly performance metrics have been updated.',
+        type: 'success',
+        timestamp: '2024-01-30T16:00:00Z',
+        read: true,
+        actionUrl: '/system-manager-dashboard',
+        priority: 'low'
+      }
+    ],
+    client: [
+      {
+        id: 'client-1',
+        title: 'Project Update',
+        message: 'Your project status has been updated. Please review.',
+        type: 'info',
+        timestamp: '2024-01-31T10:00:00Z',
+        read: false,
+        actionUrl: '/dashboard',
+        priority: 'medium'
       }
     ]
   });
