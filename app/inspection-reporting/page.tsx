@@ -110,6 +110,13 @@ export default function InspectionReporting() {
     }
   };
 
+  const handleArrayUpdate = (field: 'photos' | 'documents', value: string[]) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const handleSubmit = () => {
     setSubmitted(true);
     // Here you would typically send the data to your backend
@@ -210,7 +217,7 @@ export default function InspectionReporting() {
                 label={`Photo ${index + 1}`}
                 onDelete={() => {
                   const newPhotos = formData.photos.filter((_, i) => i !== index);
-                  handleInputChange('photos', newPhotos);
+                  handleArrayUpdate('photos', newPhotos);
                 }}
                 color="primary"
                 variant="outlined"
@@ -240,7 +247,7 @@ export default function InspectionReporting() {
                 label={`Document ${index + 1}`}
                 onDelete={() => {
                   const newDocs = formData.documents.filter((_, i) => i !== index);
-                  handleInputChange('documents', newDocs);
+                  handleArrayUpdate('documents', newDocs);
                 }}
                 color="secondary"
                 variant="outlined"
@@ -509,7 +516,7 @@ export default function InspectionReporting() {
           <Button 
             onClick={() => {
               const newPhotos = [...formData.photos, `Photo ${formData.photos.length + 1}`];
-              handleInputChange('photos', newPhotos);
+              handleArrayUpdate('photos', newPhotos);
               setOpenPhotoDialog(false);
             }}
           >
@@ -531,7 +538,7 @@ export default function InspectionReporting() {
           <Button 
             onClick={() => {
               const newDocs = [...formData.documents, `Document ${formData.documents.length + 1}`];
-              handleInputChange('documents', newDocs);
+              handleArrayUpdate('documents', newDocs);
               setOpenDocumentDialog(false);
             }}
           >
