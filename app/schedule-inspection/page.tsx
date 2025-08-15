@@ -4,7 +4,7 @@ import {
   Box, Typography, Button, Card, CardContent, Chip, 
   Dialog, DialogTitle, DialogContent,
   TextField, MenuItem,
-  Alert, Grid, IconButton,
+  Alert, IconButton,
   Stepper, Step, StepLabel, StepContent, FormControlLabel,
   Checkbox, FormGroup
 } from "@mui/material";
@@ -167,17 +167,21 @@ export default function ScheduleInspection() {
 
     if (editSchedule) {
       setSchedules(prev => prev.map(s => s.id === editSchedule.id ? newSchedule : s));
-      addNotification({
+      addNotification(user?.role || 'admin', {
+        title: 'Schedule Updated',
         message: `Inspection schedule updated for ${selectedJob.clientName}`,
         type: "success",
-        timestamp: new Date().toISOString()
+        actionUrl: '/schedule-inspection',
+        priority: 'medium'
       });
     } else {
       setSchedules(prev => [...prev, newSchedule]);
-      addNotification({
+      addNotification(user?.role || 'admin', {
+        title: 'Inspection Scheduled',
         message: `Inspection scheduled for ${selectedJob.clientName}`,
         type: "success",
-        timestamp: new Date().toISOString()
+        actionUrl: '/schedule-inspection',
+        priority: 'medium'
       });
     }
 
@@ -483,8 +487,8 @@ export default function ScheduleInspection() {
               <StepLabel>Basic Information</StepLabel>
               <StepContent>
                 <Box sx={{ p: 2 }}>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} sm={6}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 3 }}>
+                    <Box>
                       <TextField
                         label="Scheduled Date"
                         type="date"
@@ -494,8 +498,8 @@ export default function ScheduleInspection() {
                         InputLabelProps={{ shrink: true }}
                         required
                       />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
+                    </Box>
+                    <Box>
                       <TextField
                         label="Scheduled Time"
                         select
@@ -508,8 +512,8 @@ export default function ScheduleInspection() {
                           <MenuItem key={time} value={time}>{time}</MenuItem>
                         ))}
                       </TextField>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
+                    </Box>
+                    <Box>
                       <TextField
                         label="Estimated Duration"
                         select
@@ -522,8 +526,8 @@ export default function ScheduleInspection() {
                           <MenuItem key={duration} value={duration}>{duration}</MenuItem>
                         ))}
                       </TextField>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
+                    </Box>
+                    <Box>
                       <TextField
                         label="Field Team Member"
                         value={scheduleForm.fieldTeamMember}
@@ -531,8 +535,8 @@ export default function ScheduleInspection() {
                         fullWidth
                         required
                       />
-                    </Grid>
-                  </Grid>
+                    </Box>
+                  </Box>
                   
                   <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
                     <Button
@@ -556,9 +560,9 @@ export default function ScheduleInspection() {
                 <Box sx={{ p: 2 }}>
                   <Typography variant="h6" mb={2}>Special Requirements</Typography>
                   <FormGroup>
-                    <Grid container spacing={2}>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 2 }}>
                       {specialRequirements.map((requirement) => (
-                        <Grid item xs={12} sm={6} key={requirement}>
+                        <Box key={requirement}>
                           <FormControlLabel
                             control={
                               <Checkbox
@@ -568,9 +572,9 @@ export default function ScheduleInspection() {
                             }
                             label={requirement}
                           />
-                        </Grid>
+                        </Box>
                       ))}
-                    </Grid>
+                    </Box>
                   </FormGroup>
                   
                   <TextField
