@@ -594,7 +594,7 @@ function PropertyHistoryView({ job }: { job: Job }) {
                     </ListItemIcon>
                     <ListItemText
                       primary={`${neighborJob.clientName} - ${neighborJob.bankInfo.bankName}`}
-                      secondary={`Location: ${neighborJob.assetDetails.location} | Date: ${new Date(neighborJob.createdAt).toLocaleDateString()} | Value: KES ${neighborJob.assetDetails.estimatedValue}`}
+                      secondary={`Location: ${neighborJob.assetDetails.location} | Date: ${new Date(neighborJob.createdAt).toLocaleDateString()} | Value: KES ${neighborJob.valuationRequirements?.value || 'N/A'}`}
                     />
                   </ListItem>
                 ))}
