@@ -540,7 +540,9 @@ function PropertyHistoryView({ job }: { job: Job }) {
   const { getJobsByProperty, getJobsByNeighborhood } = useJobs();
   
   const propertyJobs = getJobsByProperty(job.assetDetails.location, job.assetDetails.plotNo);
-  const neighborhoodJobs = job.assetDetails.neighborhood ? getJobsByNeighborhood(job.assetDetails.neighborhood) : [];
+  const neighborhoodJobs = job.assetDetails.neighborhood && job.assetDetails.neighborhood.length > 0 
+    ? getJobsByNeighborhood(job.assetDetails.neighborhood[0]) 
+    : [];
 
   return (
     <Box>
