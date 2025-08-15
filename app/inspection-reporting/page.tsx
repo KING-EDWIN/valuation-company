@@ -92,13 +92,16 @@ export default function InspectionReporting() {
   const handleInputChange = (field: string, value: string | number | boolean) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
-      setFormData(prev => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent as keyof typeof prev],
-          [child]: value
-        }
-      }));
+      setFormData(prev => {
+        const parentValue = prev[parent as keyof typeof prev];
+        return {
+          ...prev,
+          [parent]: {
+            ...(typeof parentValue === 'object' && parentValue !== null ? parentValue : {}),
+            [child]: value
+          }
+        };
+      });
     } else {
       setFormData(prev => ({
         ...prev,
