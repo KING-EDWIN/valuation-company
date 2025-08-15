@@ -68,7 +68,7 @@ export default function AdminSettings() {
     setSettings(prev => ({
       ...prev,
       [category]: {
-        ...(prev[category as keyof typeof prev] as Record<string, any>),
+        ...(prev[category as keyof typeof prev] as Record<string, string | boolean | number>),
         [setting]: value
       }
     }));
@@ -461,7 +461,7 @@ export default function AdminSettings() {
             {/* Tabs */}
             <Paper sx={{ mb: 4 }}>
               <Tabs value={tabValue} onChange={handleTabChange} aria-label="settings tabs">
-                {tabs.map((tab, index) => (
+                {tabs.map((tab) => (
                   <Tab key={tab.id} label={tab.label} />
                 ))}
               </Tabs>
