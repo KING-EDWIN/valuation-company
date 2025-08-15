@@ -92,30 +92,39 @@ export default function ClientAcquisitionPage() {
     // Create job with enhanced information
     const newJob = {
       clientName: clientInfo.clientName,
+      clientInfo: {
+        clientType: clientInfo.clientType as "individual" | "company",
+        contactNumber: clientInfo.contactNumber,
+        email: clientInfo.email,
+        address: clientInfo.companyName || clientInfo.idNumber || "Address not provided"
+      },
       assetType: propertyInfo.assetType,
       assetDetails: {
         location: propertyInfo.propertyLocation,
-        landTitle: propertyInfo.landTitle,
-        plotNo: propertyInfo.plotNumber,
         size: propertyInfo.size,
         propertyUse: propertyInfo.propertyUse,
-        estimatedValue: propertyInfo.estimatedValue,
-        urgency: propertyInfo.urgency,
-        make: "",
-        model: "",
-        regNo: "",
-        year: "",
+        previousWorkHistory: [],
+        neighborhood: []
       },
-      createdBy: "Admin",
-      clientInfo: {
-        ...clientInfo,
-        clientType: clientInfo.clientType as "individual" | "company"
+      valuationRequirements: {
+        purpose: valuationInfo.valuationPurpose,
+        value: parseFloat(propertyInfo.estimatedValue) || 0,
+        currency: "UGX",
+        deadline: valuationInfo.preferredInspectionDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
       },
-      propertyInfo: propertyInfo,
-      valuationInfo: valuationInfo,
-      documents: uploadedDocuments,
+      bankInfo: {
+        bankName: "To be determined",
+        branch: "To be determined",
+        contactPerson: "To be determined",
+        contactNumber: "To be determined"
+      },
       status: "pending fieldwork",
-      createdAt: new Date().toISOString(),
+      qaChecklist: {
+        completed: false,
+        items: [],
+        notes: ""
+      },
+      chain: []
     };
 
     addJob(newJob);
