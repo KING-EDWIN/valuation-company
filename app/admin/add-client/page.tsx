@@ -203,7 +203,12 @@ const [formData, setFormData] = useState<{
           items: [],
           notes: ""
         },
-        chain: ["Field Team", "QA Officer", "MD", "Accounts"]
+        chain: {
+          surveyor: "Field Team",
+          qa: "QA Officer",
+          md: "MD",
+          accounts: "Accounts"
+        }
       };
 
       addJob(newJob);
