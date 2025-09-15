@@ -15,49 +15,49 @@ import Logo from "../../components/Logo";
 const demoUsers = [
   { 
     name: "Admin User 1", 
-    email: "admin1@valuationcompany.com", 
+    email: "admin1@otic.com", 
     password: "admin123", 
     role: "admin",
     color: "#1976d2"
   },
   { 
     name: "Admin User 2", 
-    email: "admin2@valuationcompany.com", 
+    email: "admin2@otic.com", 
     password: "admin123", 
     role: "admin",
     color: "#1976d2"
   },
   { 
     name: "Field Worker 1", 
-    email: "field1@valuationcompany.com", 
+    email: "field1@otic.com", 
     password: "field123", 
     role: "field_team",
     color: "#388e3c"
   },
   { 
     name: "Field Worker 2", 
-    email: "field2@valuationcompany.com", 
+    email: "field2@otic.com", 
     password: "field123", 
     role: "field_team",
     color: "#388e3c"
   },
   { 
     name: "QA Officer", 
-    email: "qa@valuationcompany.com", 
+    email: "qa@otic.com", 
     password: "qa123", 
     role: "qa_officer",
     color: "#7c3aed"
   },
   { 
     name: "Managing Director", 
-    email: "md@valuationcompany.com", 
+    email: "md@otic.com", 
     password: "md123", 
     role: "md",
     color: "#e53935"
   },
   { 
     name: "Accountant", 
-    email: "accounts@valuationcompany.com", 
+    email: "accounts@otic.com", 
     password: "accounts123", 
     role: "accounts",
     color: "#f57c00"

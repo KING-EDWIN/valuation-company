@@ -625,7 +625,7 @@ export default function Dashboard() {
                   </Box>
                   <Box>
                     <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{user.name || 'Administrator'}</Typography>
-                    <Typography variant="caption" color="text.secondary">{user.email || 'admin@valuationcompany.com'}</Typography>
+                    <Typography variant="caption" color="text.secondary">{user.email || 'admin@otic.com'}</Typography>
                   </Box>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>

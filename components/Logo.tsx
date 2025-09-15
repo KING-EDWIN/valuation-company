@@ -23,36 +23,22 @@ export default function Logo({
 }: LogoProps) {
   const dimensions = sizeMap[size];
   
-  // Create a simple geometric logo instead of using the image
+  // Use the Otic logo image
   const LogoIcon = () => (
     <Box sx={{
       width: dimensions.width,
       height: dimensions.height,
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
-      bgcolor: color === 'light' ? 'rgba(255,255,255,0.2)' : '#1976d2',
-      borderRadius: 2,
-      position: 'relative',
-      overflow: 'hidden'
+      justifyContent: 'center'
     }}>
-      <Box sx={{
-        width: '60%',
-        height: '60%',
-        border: `3px solid ${color === 'light' ? 'white' : 'white'}`,
-        borderRadius: 1,
-        position: 'relative',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: '20%',
-          left: '20%',
-          right: '20%',
-          bottom: '20%',
-          border: `2px solid ${color === 'light' ? 'white' : 'white'}`,
-          borderRadius: 0.5,
-        }
-      }} />
+      <img
+        src="/Otic icon@2x.png"
+        alt="Otic"
+        width={dimensions.width}
+        height={dimensions.height}
+        style={{ objectFit: 'contain' }}
+      />
     </Box>
   );
   
@@ -77,7 +63,7 @@ export default function Logo({
                 textShadow: color === 'light' ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
               }}
             >
-              VALUATION COMPANY
+              Otic
             </Typography>
             <Typography 
               variant={size === 'small' ? 'caption' : 'body2'}
@@ -117,7 +103,7 @@ export default function Logo({
               textShadow: color === 'light' ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
             }}
           >
-            VALUATION COMPANY
+            Otic
           </Typography>
           <Typography 
             variant={size === 'small' ? 'caption' : 'body2'}

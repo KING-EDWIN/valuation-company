@@ -526,7 +526,7 @@ export default function LandingPage() {
                 Contact Information
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.8, mb: 1 }}>
-                📧 info@valuationcompany.com
+                📧 info@otic.com
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.8, mb: 1 }}>
                 📱 +256 XXX XXX XXX
@@ -557,7 +557,7 @@ export default function LandingPage() {
           </Box>
           <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.2)', mt: 4, pt: 4, textAlign: 'center' }}>
             <Typography variant="body2" sx={{ opacity: 0.7 }}>
-              © 2024 VALUATION COMPANY. All rights reserved. | 
+              © 2024 Otic. All rights reserved. | 
               Professional Property Valuation Management System
             </Typography>
           </Box>

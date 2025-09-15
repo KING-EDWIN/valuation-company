@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VALUATION COMPANY",
+  title: "Otic",
   description: "Valuers Meeting Management System",
   icons: {
     icon: [

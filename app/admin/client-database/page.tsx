@@ -282,7 +282,7 @@ export default function ClientDatabase() {
           </head>
           <body>
             <div class="header">
-              <h1>Valuation Company - Client Database</h1>
+              <h1>Otic - Client Database</h1>
               <p>Export Date: ${new Date().toLocaleDateString()}</p>
             </div>
             <table>

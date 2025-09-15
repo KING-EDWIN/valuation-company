@@ -13,7 +13,7 @@ const pool = new Pool({
 const demoUsers = [
   { 
     name: "Admin User 1", 
-    email: "admin1@valuationcompany.com", 
+    email: "admin1@otic.com", 
     password: "admin123", 
     role: "admin",
     phone: "+256 700 000 001",
@@ -21,7 +21,7 @@ const demoUsers = [
   },
   { 
     name: "Admin User 2", 
-    email: "admin2@valuationcompany.com", 
+    email: "admin2@otic.com", 
     password: "admin123", 
     role: "admin",
     phone: "+256 700 000 002",
@@ -29,7 +29,7 @@ const demoUsers = [
   },
   { 
     name: "Field Worker 1", 
-    email: "field1@valuationcompany.com", 
+    email: "field1@otic.com", 
     password: "field123", 
     role: "field_team",
     phone: "+256 700 000 003",
@@ -37,7 +37,7 @@ const demoUsers = [
   },
   { 
     name: "Field Worker 2", 
-    email: "field2@valuationcompany.com", 
+    email: "field2@otic.com", 
     password: "field123", 
     role: "field_team",
     phone: "+256 700 000 004",
@@ -45,7 +45,7 @@ const demoUsers = [
   },
   { 
     name: "QA Officer", 
-    email: "qa@valuationcompany.com", 
+    email: "qa@otic.com", 
     password: "qa123", 
     role: "qa_officer",
     phone: "+256 700 000 005",
@@ -53,7 +53,7 @@ const demoUsers = [
   },
   { 
     name: "Managing Director", 
-    email: "md@valuationcompany.com", 
+    email: "md@otic.com", 
     password: "md123", 
     role: "md",
     phone: "+256 700 000 006",
@@ -61,7 +61,7 @@ const demoUsers = [
   },
   { 
     name: "Accountant", 
-    email: "accounts@valuationcompany.com", 
+    email: "accounts@otic.com", 
     password: "accounts123", 
     role: "accounts",
     phone: "+256 700 000 007",
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     
     // Clear existing demo users
     console.log('Clearing existing demo users...');
-    await pool.query('DELETE FROM users WHERE email LIKE \'%@valuationcompany.com\'');
+    await pool.query('DELETE FROM users WHERE email LIKE \'%@otic.com\'');
     
     const createdUsers = [];
 

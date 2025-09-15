@@ -1,4 +1,4 @@
-# VALUATION COMPANY – Valuers Meeting Management System
+# Otic – Valuers Meeting Management System
 
 This is a demo application for managing the workflow of a property valuation company, built with **Next.js** and **Material UI**. It features role-based access for all key steps in the valuation process, from client instruction to final billing.
 
@@ -42,4 +42,4 @@ This is a demo application for managing the workflow of a property valuation com
 
 ---
 
-Built as a comprehensive valuation company workflow management system.
+Built as a comprehensive valuation company workflow management system for Otic.

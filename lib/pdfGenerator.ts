@@ -190,7 +190,7 @@ export class PDFGenerator {
 
         <div class="footer">
           <p>This report was generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
-          <p>Valuation Company - Professional Property Valuation</p>
+          <p>Otic - Professional Property Valuation</p>
         </div>
 
         <div class="signature-section">
@@ -324,7 +324,7 @@ export class PDFGenerator {
         ${staticData.firm_details ? `
           <div class="field-group">
             <div class="field-label">Firm Name:</div>
-            <div class="field-value">${staticData.firm_details.name || 'Valuation Company'}</div>
+                <div class="field-value">${staticData.firm_details.name || 'Otic'}</div>
           </div>
           <div class="field-group">
             <div class="field-label">Address:</div>
