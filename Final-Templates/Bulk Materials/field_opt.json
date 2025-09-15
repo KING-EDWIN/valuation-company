@@ -1,0 +1,20 @@
+{
+  "optional_field_toggles": {
+    "has_quality_checks": false
+  },
+  "conditional_details": {
+    "quality_statement": {
+      "policy_adopted": "",
+      "quality_checks_designed": "",
+      "quality_officer_present": false
+    },
+    "survey_control": {
+      "control_network_used": "",
+      "gnss_equipment": "",
+      "total_station_used": ""
+    },
+    "problems_and_challenges_encountered": {
+      "description": ""
+    }
+  }
+}

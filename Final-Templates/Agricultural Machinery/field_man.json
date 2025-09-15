@@ -1,0 +1,41 @@
+{
+  "asset_details": {
+    "inspection_details": {
+      "inspection_date": "",
+      "inspection_accompanied_by": {
+        "name": "",
+        "role": "",
+        "registered_owner_present": false
+      }
+    },
+    "assets": [
+      {
+        "asset_name": "",
+        "category": "",
+        "make_and_model": "",
+        "serial_number": "",
+        "year_of_manufacture": null
+      }
+    ]
+  },
+  "valuation_findings": {
+    "asset_conditions": [
+      {
+        "asset_name": "",
+        "operational_status": "",
+        "physical_condition": "",
+        "maintenance_notes": "",
+        "estimated_value": {
+          "market_value": null,
+          "forced_sale_value": null,
+          "currency": ""
+        }
+      }
+    ]
+  },
+  "valuation_methodology": {
+    "method_summary": "",
+    "tools_used": [],
+    "data_sources": []
+  }
+}

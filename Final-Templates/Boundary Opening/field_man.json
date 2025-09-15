@@ -1,0 +1,52 @@
+{
+  "asset_details": {
+    "plot_number": "",
+    "block_number": "",
+    "land_type": "",
+    "location_details": {
+      "district": "",
+      "township": "",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    }
+  },
+  "survey_findings": {
+    "plot_size": {
+      "acres": null,
+      "hectares": null
+    },
+    "property_existence_confirmed": false,
+    "access_details": {
+      "access_description": "",
+      "access_quality": "",
+      "final_access_road_condition": ""
+    },
+    "developments_and_features": {
+      "development_status": "",
+      "neighborhood_type": "",
+      "plot_status": ""
+    },
+    "boundaries": {
+      "boundary_status": "",
+      "mark_stones": {
+        "visible_count": null,
+        "status": ""
+      },
+      "orientation_on_ground_vs_title": ""
+    },
+    "inspection_details": {
+      "inspection_date": "",
+      "inspection_accompanied_by": {
+        "name": "",
+        "role": ""
+      },
+      "registered_owner_present_during_inspection": false
+    },
+    "survey_methodology": {
+      "equipment_used": [],
+      "verification_steps": []
+    }
+  }
+}

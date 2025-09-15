@@ -2,351 +2,380 @@
 
 import { 
   Box, Typography, Button, Card, CardContent, 
-  Paper
+  TextField, Alert, CircularProgress, Paper, Divider
 } from "@mui/material";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useUser } from "../../components/UserContext";
-import { useEffect } from "react";
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import ReportIcon from '@mui/icons-material/Report';
-import PaymentIcon from '@mui/icons-material/Payment';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import BusinessIcon from '@mui/icons-material/Business';
+import PersonIcon from '@mui/icons-material/Person';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Logo from "../../components/Logo";
 
-const roles = [
+// Demo users for easy testing
+const demoUsers = [
   { 
-    key: "admin", 
-    label: "Admin", 
-    icon: BusinessIcon,
-    description: "Manage clients, assign jobs, and oversee the entire workflow",
+    name: "Admin User 1", 
+    email: "admin1@stanfield.com", 
+    password: "admin123", 
+    role: "admin",
     color: "#1976d2"
   },
   { 
-    key: "field_team", 
-    label: "Field Team", 
-    icon: AssignmentIcon,
-    description: "Conduct field inspections and submit detailed reports",
+    name: "Admin User 2", 
+    email: "admin2@stanfield.com", 
+    password: "admin123", 
+    role: "admin",
+    color: "#1976d2"
+  },
+  { 
+    name: "Field Worker 1", 
+    email: "field1@stanfield.com", 
+    password: "field123", 
+    role: "field_team",
     color: "#388e3c"
   },
   { 
-    key: "qa_officer", 
-    label: "QA Officer", 
-    icon: AssessmentIcon,
-    description: "Review and quality assure all field reports and documents",
+    name: "Field Worker 2", 
+    email: "field2@stanfield.com", 
+    password: "field123", 
+    role: "field_team",
+    color: "#388e3c"
+  },
+  { 
+    name: "QA Officer", 
+    email: "qa@stanfield.com", 
+    password: "qa123", 
+    role: "qa_officer",
     color: "#7c3aed"
   },
   { 
-    key: "md", 
-    label: "Managing Director", 
-    icon: CheckCircleIcon,
-    description: "Final approval and strategic oversight of all valuations",
+    name: "Managing Director", 
+    email: "md@stanfield.com", 
+    password: "md123", 
+    role: "md",
     color: "#e53935"
   },
   { 
-    key: "accounts", 
-    label: "Accounts", 
-    icon: PaymentIcon,
-    description: "Process payments and manage financial aspects",
-    color: "#6d4c41"
-  },
-];
-
-const processSteps = [
-  {
-    step: 1,
-    title: "Client Instruction",
-    description: "Client submits valuation request",
-    icon: PersonAddIcon,
-    color: "#1976d2"
-  },
-  {
-    step: 2,
-    title: "Admin Assignment",
-    description: "Admin assigns inspection and field team",
-    icon: AssignmentIcon,
-    color: "#2196f3"
-  },
-  {
-    step: 3,
-    title: "Field Inspection",
-    description: "Field team conducts site inspection",
-    icon: ReportIcon,
-    color: "#00897b"
-  },
-  {
-    step: 4,
-    title: "Report Writing",
-    description: "Field team writes detailed report",
-    icon: ReportIcon,
-    color: "#26a69a"
-  },
-  {
-    step: 5,
-    title: "Quality Assurance",
-    description: "QA officer reviews and validates",
-    icon: AssessmentIcon,
-    color: "#7c3aed"
-  },
-  {
-    step: 6,
-    title: "MD Approval",
-    description: "Managing Director final approval",
-    icon: CheckCircleIcon,
-    color: "#e53935"
-  },
-  {
-    step: 7,
-    title: "Payment & Billing",
-    description: "Accounts processes payment",
-    icon: PaymentIcon,
-    color: "#6d4c41"
+    name: "Accountant", 
+    email: "accounts@stanfield.com", 
+    password: "accounts123", 
+    role: "accounts",
+    color: "#f57c00"
   }
 ];
 
-export default function SignIn() {
-  const { login, user } = useUser();
+export default function SignInPage() {
+  const router = useRouter();
+  const { login } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
 
-  const handleLogin = (role: string) => {
-    console.log('=== LOGIN PROCESS START ===');
-    console.log('Current user state before login:', user);
-    console.log('Attempting to login as:', role);
-    
-    // First set the user state
-    login(role as "admin" | "field_team" | "qa_officer" | "md" | "accounts");
-    
-    console.log('Login function called, waiting for state update...');
-    
-    // Wait for the next render cycle to ensure state is updated
-    setTimeout(() => {
-      console.log('Checking user state after login:', user);
-      console.log('Navigating to dashboard...');
-      
-      // Force a page reload to ensure the dashboard gets the updated state
-      window.location.href = "/dashboard";
-    }, 100);
+  // Redirect if already logged in
+  useEffect(() => {
+    const checkAuth = () => {
+      const savedUser = localStorage.getItem('stanfield_user');
+      if (savedUser) {
+        const user = JSON.parse(savedUser);
+        if (user.role) {
+          router.push('/dashboard');
+        }
+      }
+    };
+    checkAuth();
+  }, [router]);
+
+  const handleInputChange = (field: string) => (event: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
+    setError('');
   };
 
-  // Debug: Show current user state
-  useEffect(() => {
-    console.log('SignIn page mounted, current user:', user);
-  }, [user]);
+  const handleDemoLogin = (demoUser: any) => {
+    setLoading(true);
+    setError('');
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      try {
+        login(demoUser.role);
+        router.push('/dashboard');
+      } catch (err) {
+        setError('Login failed. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    }, 500);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        login(data.user.role);
+        router.push('/dashboard');
+      } else {
+        setError(data.error || 'Invalid credentials');
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" sx={{ background: 'linear-gradient(135deg, #f6f7fb 0%, #e3f0ff 100%)' }}>
-      {/* Header with Logo */}
-      <Box sx={{ 
-        position: 'absolute', 
-        top: 0, 
-        left: 0, 
-        right: 0, 
-        bgcolor: 'white', 
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-        zIndex: 1000
-      }}>
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: 2, 
-          py: 2, 
-          px: 4,
-          maxWidth: 1200,
-          mx: 'auto'
-        }}>
-          <Box sx={{ 
-            width: 40, 
-            height: 40, 
-            borderRadius: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden'
-          }}>
-                          {/* Stanfield Logo - CSS Generated */}
-              <Box sx={{ 
-                width: '100%', 
-                height: '100%', 
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative'
-              }}>
-                {/* Red geometric shape - upper left */}
-                <Box sx={{
-                  position: 'absolute',
-                  top: '10%',
-                  left: '10%',
-                  width: '40%',
-                  height: '40%',
-                  backgroundColor: '#e53935',
-                  clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)',
-                  zIndex: 2
-                }} />
-                
-                {/* Dark gray geometric shape - lower right */}
-                <Box sx={{
-                  position: 'absolute',
-                  bottom: '10%',
-                  right: '10%',
-                  width: '40%',
-                  height: '40%',
-                  backgroundColor: '#424242',
-                  clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%)',
-                  zIndex: 2
-                }} />
-                
-                {/* Diagonal line connecting the shapes */}
-                <Box sx={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  width: '80%',
-                  height: '3px',
-                  backgroundColor: '#1976d2',
-                  transform: 'translate(-50%, -50%) rotate(45deg)',
-                  zIndex: 1
-                }} />
-              </Box>
-            <Box sx={{ 
-              width: '100%', 
-              height: '100%', 
-              bgcolor: '#1976d2', 
-              borderRadius: 2,
-              display: 'none',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontWeight: 'bold',
-              fontSize: '1.2rem'
-            }}>
-              SP
-            </Box>
+    <Box sx={{ 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      py: 4
+    }}>
+      <Box sx={{ width: '100%', maxWidth: 600, px: 2 }}>
+        {/* Header */}
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+            <Logo size="large" showText={true} color="light" />
           </Box>
-          <Typography variant="h6" fontWeight={600} color="text.primary">
-            Stanfield Property Partners
+          <Typography variant="h4" fontWeight={700} color="white" mb={1}>
+            Sign In
+          </Typography>
+          <Typography variant="body1" color="rgba(255,255,255,0.8)">
+            Access your professional property valuation dashboard
           </Typography>
         </Box>
-      </Box>
 
-      {/* Main Content */}
-      <Box sx={{ mt: 8, textAlign: 'center', mb: 4 }}>
-        <Typography variant="h3" fontWeight={700} gutterBottom>
-          Welcome to Stanfield System
-        </Typography>
-        <Typography variant="subtitle1" color="text.secondary" mb={3}>
-          Property Valuation Workflow Management
-        </Typography>
-      </Box>
-
-      {/* Role Selection */}
-      <Paper sx={{ p: 5, borderRadius: 4, mb: 4, minWidth: 340, textAlign: 'center', maxWidth: 800, width: '100%', mx: 2 }}>
-        <Typography variant="h5" fontWeight={600} mb={4} color="text.primary">
-          Select Your Role
-        </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 4 }}>
-          {roles.map(role => {
-            const IconComponent = role.icon;
-            return (
-              <Button
-                key={role.key}
-                variant="contained"
-                size="large"
-                sx={{ 
-                  fontSize: 18, 
-                  py: 2.5, 
-                  borderRadius: 2, 
-                  fontWeight: 600, 
-                  background: `linear-gradient(90deg, ${role.color} 0%, ${role.color}dd 100%)`,
-                  textTransform: 'none',
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: `0 8px 25px ${role.color}40`
-                  },
-                  transition: 'all 0.3s ease'
-                }}
-                onClick={() => handleLogin(role.key)}
-                fullWidth
-                startIcon={<IconComponent />}
-              >
-                {role.label}
-              </Button>
-            );
-          })}
-        </Box>
-      </Paper>
-
-      {/* Process Flow Visualization */}
-      <Paper sx={{ p: 4, borderRadius: 4, maxWidth: 1200, width: '100%', mx: 2 }}>
-        <Typography variant="h4" fontWeight={700} textAlign="center" gutterBottom color="primary">
-          Complete Workflow Process
-        </Typography>
-        <Typography variant="subtitle1" textAlign="center" color="text.secondary" mb={4}>
-          End-to-end property valuation workflow from client instruction to final payment
-        </Typography>
-        
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 2, justifyContent: 'center' }}>
-          {processSteps.map((step, index) => {
-            const IconComponent = step.icon;
-            return (
-              <Box key={step.step}>
-                <Card sx={{ 
-                  height: '100%',
-                  background: `linear-gradient(135deg, ${step.color} 0%, ${step.color}dd 100%)`,
-                  color: 'white',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: `0 8px 25px ${step.color}40`
-                  }
-                }}>
-                  <CardContent sx={{ textAlign: 'center', py: 3 }}>
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      mb: 2
-                    }}>
-                      <Box sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: '50%',
-                        bgcolor: 'rgba(255,255,255,0.2)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mr: 2
-                      }}>
-                        <Typography variant="h6" fontWeight={700}>
-                          {step.step}
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+          {/* Demo Users Section */}
+          <Card sx={{ 
+            borderRadius: 3,
+            boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+            backdropFilter: 'blur(10px)',
+            bgcolor: 'rgba(255,255,255,0.95)'
+          }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" fontWeight={600} mb={2} color="text.primary">
+                Demo Users
+              </Typography>
+              <Typography variant="body2" color="text.secondary" mb={3}>
+                Click any demo user to sign in instantly
+              </Typography>
+              
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                {demoUsers.map((user) => (
+                  <Button
+                    key={user.email}
+                    variant="outlined"
+                    onClick={() => handleDemoLogin(user)}
+                    disabled={loading}
+                    sx={{
+                      justifyContent: 'flex-start',
+                      textAlign: 'left',
+                      p: 2,
+                      borderRadius: 2,
+                      borderColor: user.color,
+                      color: user.color,
+                      '&:hover': {
+                        bgcolor: `${user.color}10`,
+                        borderColor: user.color,
+                        transform: 'translateY(-2px)',
+                        boxShadow: `0 4px 12px ${user.color}30`
+                      },
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                      <Box sx={{ 
+                        width: 8, 
+                        height: 8, 
+                        borderRadius: '50%', 
+                        bgcolor: user.color 
+                      }} />
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="body2" fontWeight={600}>
+                          {user.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {user.email}
                         </Typography>
                       </Box>
-                      <IconComponent sx={{ fontSize: 32 }} />
                     </Box>
-                    <Typography variant="h6" fontWeight={600} gutterBottom>
-                      {step.title}
-                    </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                      {step.description}
-                    </Typography>
-                  </CardContent>
-                </Card>
-                {index < processSteps.length - 1 && (
-                  <Box sx={{ 
-                    display: { xs: 'none', md: 'flex' },
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: 200,
-                    color: 'text.secondary'
-                  }}>
-                    <ArrowForwardIcon sx={{ fontSize: 24 }} />
-                  </Box>
-                )}
+                  </Button>
+                ))}
               </Box>
-            );
-          })}
+            </CardContent>
+          </Card>
+
+          {/* Manual Login Form */}
+          <Card sx={{ 
+            borderRadius: 3,
+            boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+            backdropFilter: 'blur(10px)',
+            bgcolor: 'rgba(255,255,255,0.95)'
+          }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" fontWeight={600} mb={2} color="text.primary">
+                Manual Login
+              </Typography>
+              <Typography variant="body2" color="text.secondary" mb={3}>
+                Enter your credentials to sign in
+              </Typography>
+
+              <form onSubmit={handleSubmit}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {/* Email */}
+                  <TextField
+                    label="Email Address"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange('email')}
+                    required
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                  />
+
+                  {/* Password */}
+                  <TextField
+                    label="Password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleInputChange('password')}
+                    required
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                  />
+
+                  {/* Error Message */}
+                  {error && (
+                    <Alert severity="error" sx={{ borderRadius: 2 }}>
+                      {error}
+                    </Alert>
+                  )}
+
+                  {/* Submit Button */}
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    disabled={loading}
+                    sx={{
+                      bgcolor: '#1976d2',
+                      py: 1.5,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                      '&:hover': {
+                        bgcolor: '#1565c0',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 8px 25px rgba(25, 118, 210, 0.3)'
+                      },
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    {loading ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CircularProgress size={20} color="inherit" />
+                        Signing In...
+                      </Box>
+                    ) : (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <PersonIcon />
+                        Sign In
+                      </Box>
+                    )}
+                  </Button>
+                </Box>
+              </form>
+            </CardContent>
+          </Card>
         </Box>
-      </Paper>
+
+        {/* Sign Up Link */}
+        <Box sx={{ textAlign: 'center', mt: 4 }}>
+          <Button
+            variant="text"
+            onClick={() => router.push('/signup')}
+            sx={{
+              textTransform: 'none',
+              color: 'white',
+              '&:hover': {
+                bgcolor: 'rgba(255,255,255,0.1)'
+              }
+            }}
+          >
+            Don't have an account? Sign Up
+          </Button>
+        </Box>
+
+        {/* Back to Home */}
+        <Box sx={{ textAlign: 'center', mt: 3 }}>
+          <Button
+            variant="outlined"
+            onClick={() => router.push('/')}
+            startIcon={<ArrowBackIcon />}
+            sx={{
+              textTransform: 'none',
+              color: 'white',
+              borderColor: 'rgba(255,255,255,0.3)',
+              px: 4,
+              py: 1.5,
+              borderRadius: 3,
+              fontSize: '1rem',
+              fontWeight: 600,
+              position: 'relative',
+              overflow: 'hidden',
+              '&:hover': {
+                borderColor: 'white',
+                bgcolor: 'rgba(255,255,255,0.1)',
+                transform: 'translateY(-2px)',
+                boxShadow: '0 6px 20px rgba(255,255,255,0.2)',
+                '&::before': {
+                  transform: 'scaleX(1)',
+                }
+              },
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
+                transform: 'scaleX(0)',
+                transformOrigin: 'left',
+                transition: 'transform 0.3s ease',
+                zIndex: -1,
+              },
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+            }}
+          >
+            Back to Home
+          </Button>
+        </Box>
+      </Box>
     </Box>
   );
 }

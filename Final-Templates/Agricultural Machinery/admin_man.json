@@ -1,0 +1,48 @@
+{
+  "project_details": {
+    "report_title": "", 
+    "report_reference_number": "",
+    "report_date": "",
+    "assignment_type": "",
+    "assignment_purpose": "",
+    "report_recipient": {
+      "name": "",
+      "organization": "",
+      "branch": "",
+      "location": ""
+    }
+  },
+  "client_details": {
+    "name": "",
+    "branch": "",
+    "location": "",
+    "contact_person": {
+      "name": "",
+      "contact_number": "",
+      "role": ""
+    }
+  },
+  "ownership_and_registration_info": {
+    "registered_owner": {
+      "name": "",
+      "address": "",
+      "contact_number": ""
+    },
+    "machinery_registration_details": {
+      "registration_number": "",
+      "source_of_information": ""
+    }
+  },
+  "related_documents": {
+    "purchase_documents": [],
+    "registration_documents": []
+  },
+  "search_report_details": {
+    "search_reference_number": null,
+    "search_date": null,
+    "search_signed_by": {
+      "name": null,
+      "role": null
+    }
+  }
+}

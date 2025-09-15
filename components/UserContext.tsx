@@ -11,6 +11,9 @@ export type Role =
   | "admin";
 
 interface User {
+  id?: number | string;
+  name?: string;
+  email?: string;
   role: Role;
 }
 
@@ -35,16 +38,24 @@ export function UserProvider({ children }: { children: ReactNode }) {
           const parsedUser = JSON.parse(savedUser);
           setUser(parsedUser);
           console.log('Loaded user from localStorage:', parsedUser);
+        } else {
+          // Set default admin user for testing
+          const defaultUser = { role: 'admin' as Role };
+          setUser(defaultUser);
+          console.log('Set default admin user for testing');
         }
       } catch (error) {
         console.error('Error reading from localStorage:', error);
         localStorage.removeItem('stanfield_user');
+        // Set default admin user for testing
+        const defaultUser = { role: 'admin' as Role };
+        setUser(defaultUser);
       }
     }
   }, []);
 
   const login = useCallback((role: Role) => {
-    const newUser = { role };
+    const newUser: User = { role };
     console.log('Logging in user:', newUser);
     
     // Update localStorage first

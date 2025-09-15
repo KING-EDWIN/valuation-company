@@ -1,0 +1,36 @@
+{
+  "project_details": {
+    "instruction_details": {
+      "instruction_date": "",
+      "other_considerations": ""
+    }
+  },
+  "tenure_details": {
+    "instrument_details": {
+      "number": "",
+      "date": ""
+    },
+    "encumbrances": {
+      "status": "",
+      "recommendation": ""
+    }
+  },
+  "valuation_analysis": {
+    "valuation_methodology": {
+      "applied_method": "",
+      "reason_for_applied_methods": ""
+    },
+    "valuation_fees_breakdown": {
+      "professional_fees_ugx": null,
+      "transport_fees_ugx": null,
+      "vat_ugx": null
+    }
+  },
+  "general_assumptions_and_limitations": {
+    "report_confidentiality": "",
+    "publication_restriction": "",
+    "report_validity_conditions": "",
+    "timber_infestation_check_status": "",
+    "easements_rights_of_way_encroachments_assumption": ""
+  }
+}

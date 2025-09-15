@@ -1,0 +1,19 @@
+{
+  "conditional_details": {
+    "vehicle_condition_notes": {
+      "drivetrain_condition": "",
+      "interior_condition": "",
+      "windows_and_mirrors_condition": "",
+      "missing_items": "",
+      "extras": ""
+    },
+    "saleability_assessment": {
+      "remarks": "",
+      "suitability_for_mortgage": ""
+    },
+    "pictorial_views": {
+      "pictorial_views_available": false,
+      "description": ""
+    }
+  }
+}

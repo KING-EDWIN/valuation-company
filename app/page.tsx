@@ -13,12 +13,19 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import SecurityIcon from '@mui/icons-material/Security';
 import SpeedIcon from '@mui/icons-material/Speed';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import PersonIcon from '@mui/icons-material/Person';
+import Logo from "../components/Logo";
 
 export default function LandingPage() {
   const router = useRouter();
 
   const handleSignIn = () => {
     router.push('/signin');
+  };
+
+  const handleSignUp = () => {
+    router.push('/signup');
   };
 
   const services = [
@@ -96,90 +103,106 @@ export default function LandingPage() {
             py: 2 
           }}>
             {/* Logo */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box sx={{ 
-                width: 50, 
-                height: 50, 
-                borderRadius: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden'
-              }}>
-                {/* Stanfield Logo - CSS Generated */}
-                <Box sx={{ 
-                  width: '100%', 
-                  height: '100%', 
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative'
-                }}>
-                  {/* Red geometric shape - upper left */}
-                  <Box sx={{
-                    position: 'absolute',
-                    top: '10%',
-                    left: '10%',
-                    width: '40%',
-                    height: '40%',
-                    backgroundColor: '#e53935',
-                    clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)',
-                    zIndex: 2
-                  }} />
-                  
-                  {/* Dark gray geometric shape - lower right */}
-                  <Box sx={{
-                    position: 'absolute',
-                    bottom: '10%',
-                    right: '10%',
-                    width: '40%',
-                    height: '40%',
-                    backgroundColor: '#424242',
-                    clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%)',
-                    zIndex: 2
-                  }} />
-                  
-                  {/* Diagonal line connecting the shapes */}
-                  <Box sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    width: '80%',
-                    height: '3px',
-                    backgroundColor: '#1976d2',
-                    transform: 'translate(-50%, -50%) rotate(45deg)',
-                    zIndex: 1
-                  }} />
-                </Box>
-
-              </Box>
-              <Typography variant="h5" fontWeight={700} color="text.primary">
-                Stanfield Property Partners
-              </Typography>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 2,
+              p: 2,
+              borderRadius: 2,
+              bgcolor: 'rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <Logo size="large" showText={true} />
             </Box>
 
-            {/* Sign In Button */}
-            <Button
-              variant="contained"
-              onClick={handleSignIn}
-              sx={{
-                bgcolor: '#1976d2',
-                px: 4,
-                py: 1.5,
-                borderRadius: 2,
-                textTransform: 'none',
-                fontSize: '1rem',
-                fontWeight: 600,
-                '&:hover': {
-                  bgcolor: '#1565c0',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 20px rgba(25, 118, 210, 0.3)'
-                },
-                transition: 'all 0.3s ease'
-              }}
-            >
-              Sign In to System
-            </Button>
+            {/* Sign In and Sign Up Buttons */}
+            <Box sx={{ display: 'flex', gap: 3 }}>
+              <Button
+                variant="outlined"
+                onClick={handleSignUp}
+                startIcon={<PersonAddIcon />}
+                sx={{
+                  borderColor: '#1976d2',
+                  color: '#1976d2',
+                  px: 5,
+                  py: 2,
+                  borderRadius: 3,
+                  textTransform: 'none',
+                  fontSize: '1.1rem',
+                  fontWeight: 700,
+                  borderWidth: 2,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&:hover': {
+                    borderColor: '#1565c0',
+                    bgcolor: 'rgba(25, 118, 210, 0.08)',
+                    transform: 'translateY(-3px)',
+                    boxShadow: '0 8px 25px rgba(25, 118, 210, 0.3)',
+                    borderWidth: 2,
+                    '&::before': {
+                      transform: 'scaleX(1)',
+                    }
+                  },
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'linear-gradient(45deg, rgba(25, 118, 210, 0.1), rgba(25, 118, 210, 0.05))',
+                    transform: 'scaleX(0)',
+                    transformOrigin: 'left',
+                    transition: 'transform 0.3s ease',
+                    zIndex: -1,
+                  },
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+              >
+                Create Account
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleSignIn}
+                startIcon={<PersonIcon />}
+                sx={{
+                  background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+                  px: 5,
+                  py: 2,
+                  borderRadius: 3,
+                  textTransform: 'none',
+                  fontSize: '1.1rem',
+                  fontWeight: 700,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  boxShadow: '0 4px 15px rgba(25, 118, 210, 0.3)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)',
+                    transform: 'translateY(-3px)',
+                    boxShadow: '0 8px 25px rgba(25, 118, 210, 0.4)',
+                    '&::before': {
+                      transform: 'scaleX(1)',
+                    }
+                  },
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'linear-gradient(45deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1))',
+                    transform: 'scaleX(0)',
+                    transformOrigin: 'left',
+                    transition: 'transform 0.3s ease',
+                    zIndex: 1,
+                  },
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+              >
+                Sign In
+              </Button>
+            </Box>
           </Box>
         </Container>
       </Box>
@@ -200,26 +223,46 @@ export default function LandingPage() {
                 Streamline your valuation workflow with our comprehensive digital platform. 
                 From client onboarding to final approval, manage everything in one secure system.
               </Typography>
-              <Box sx={{ display: 'flex', gap: 2 }}>
+              <Box sx={{ display: 'flex', gap: 3 }}>
                 <Button
                   variant="contained"
                   size="large"
                   onClick={handleSignIn}
+                  startIcon={<PersonIcon />}
                   sx={{
                     bgcolor: 'white',
                     color: '#1976d2',
-                    px: 6,
-                    py: 2,
-                    borderRadius: 3,
+                    px: 8,
+                    py: 2.5,
+                    borderRadius: 4,
                     textTransform: 'none',
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
+                    fontSize: '1.2rem',
+                    fontWeight: 700,
+                    position: 'relative',
+                    overflow: 'hidden',
+                    boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
                     '&:hover': {
-                      bgcolor: '#f5f5f5',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 8px 25px rgba(0,0,0,0.2)'
+                      bgcolor: '#f8f9fa',
+                      transform: 'translateY(-3px)',
+                      boxShadow: '0 12px 30px rgba(0,0,0,0.25)',
+                      '&::before': {
+                        transform: 'scaleX(1)',
+                      }
                     },
-                    transition: 'all 0.3s ease'
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: 'linear-gradient(45deg, rgba(25, 118, 210, 0.1), rgba(25, 118, 210, 0.05))',
+                      transform: 'scaleX(0)',
+                      transformOrigin: 'left',
+                      transition: 'transform 0.3s ease',
+                      zIndex: -1,
+                    },
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                   }}
                 >
                   Get Started Now
@@ -227,19 +270,42 @@ export default function LandingPage() {
                 <Button
                   variant="outlined"
                   size="large"
+                  startIcon={<AssessmentIcon />}
                   sx={{
-                    borderColor: 'rgba(255,255,255,0.5)',
+                    borderColor: 'rgba(255,255,255,0.6)',
                     color: 'white',
-                    px: 6,
-                    py: 2,
-                    borderRadius: 3,
+                    px: 8,
+                    py: 2.5,
+                    borderRadius: 4,
                     textTransform: 'none',
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
+                    fontSize: '1.2rem',
+                    fontWeight: 700,
+                    borderWidth: 2,
+                    position: 'relative',
+                    overflow: 'hidden',
                     '&:hover': {
                       borderColor: 'white',
-                      bgcolor: 'rgba(255,255,255,0.1)'
-                    }
+                      bgcolor: 'rgba(255,255,255,0.15)',
+                      transform: 'translateY(-3px)',
+                      boxShadow: '0 12px 30px rgba(255,255,255,0.2)',
+                      '&::before': {
+                        transform: 'scaleX(1)',
+                      }
+                    },
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: 'linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
+                      transform: 'scaleX(0)',
+                      transformOrigin: 'left',
+                      transition: 'transform 0.3s ease',
+                      zIndex: -1,
+                    },
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                   }}
                 >
                   Learn More
@@ -398,21 +464,41 @@ export default function LandingPage() {
               variant="contained"
               size="large"
               onClick={handleSignIn}
+              startIcon={<PersonIcon />}
               sx={{
                 bgcolor: 'white',
                 color: '#1976d2',
-                px: 8,
-                py: 2.5,
-                borderRadius: 3,
+                px: 10,
+                py: 3,
+                borderRadius: 4,
                 textTransform: 'none',
-                fontSize: '1.2rem',
-                fontWeight: 600,
+                fontSize: '1.3rem',
+                fontWeight: 700,
+                position: 'relative',
+                overflow: 'hidden',
+                boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
                 '&:hover': {
-                  bgcolor: '#f5f5f5',
-                  transform: 'translateY(-3px)',
-                  boxShadow: '0 12px 30px rgba(0,0,0,0.3)'
+                  bgcolor: '#f8f9fa',
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 15px 35px rgba(0,0,0,0.35)',
+                  '&::before': {
+                    transform: 'scaleX(1)',
+                  }
                 },
-                transition: 'all 0.3s ease'
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(45deg, rgba(25, 118, 210, 0.1), rgba(25, 118, 210, 0.05))',
+                  transform: 'scaleX(0)',
+                  transformOrigin: 'left',
+                  transition: 'transform 0.3s ease',
+                  zIndex: -1,
+                },
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
               }}
             >
               Access System Now
@@ -427,64 +513,7 @@ export default function LandingPage() {
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 4 }}>
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Box sx={{ 
-                  width: 40, 
-                  height: 40, 
-                  borderRadius: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden'
-                }}>
-                  {/* Stanfield Logo - CSS Generated */}
-                  <Box sx={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    position: 'relative'
-                  }}>
-                    {/* Red geometric shape - upper left */}
-                    <Box sx={{
-                      position: 'absolute',
-                      top: '10%',
-                      left: '10%',
-                      width: '40%',
-                      height: '40%',
-                      backgroundColor: '#e53935',
-                      clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)',
-                      zIndex: 2
-                    }} />
-                    
-                    {/* Dark gray geometric shape - lower right */}
-                    <Box sx={{
-                      position: 'absolute',
-                      bottom: '10%',
-                      right: '10%',
-                      width: '40%',
-                      height: '40%',
-                      backgroundColor: '#424242',
-                      clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%)',
-                      zIndex: 2
-                    }} />
-                    
-                    {/* Diagonal line connecting the shapes */}
-                    <Box sx={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      width: '80%',
-                      height: '3px',
-                      backgroundColor: '#1976d2',
-                      transform: 'translate(-50%, -50%) rotate(45deg)',
-                      zIndex: 1
-                    }} />
-                  </Box>
-                </Box>
-                <Typography variant="h6" fontWeight={600}>
-                  Stanfield Property Partners
-                </Typography>
+                <Logo size="medium" showText={true} color="light" />
               </Box>
               <Typography variant="body2" sx={{ opacity: 0.8, lineHeight: 1.6 }}>
                 An independent limited liability company with over 18 years of combined property experience. 
@@ -497,7 +526,7 @@ export default function LandingPage() {
                 Contact Information
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.8, mb: 1 }}>
-                📧 info@stanfieldpp.com
+                📧 info@stanfieldpartners.com
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.8, mb: 1 }}>
                 📱 +256 XXX XXX XXX
@@ -528,7 +557,7 @@ export default function LandingPage() {
           </Box>
           <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.2)', mt: 4, pt: 4, textAlign: 'center' }}>
             <Typography variant="body2" sx={{ opacity: 0.7 }}>
-              © 2024 Stanfield Property Partners. All rights reserved. | 
+              © 2024 STANFIELD PARTNERS. All rights reserved. | 
               Professional Property Valuation Management System
             </Typography>
           </Box>

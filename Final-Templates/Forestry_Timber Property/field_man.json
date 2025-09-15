@@ -1,0 +1,52 @@
+{
+  "inspection_details": {
+    "date_of_physical_inspection": "",
+    "field_surveyor_details": {
+      "name": "",
+      "role": "",
+      "liability_declaration": ""
+    },
+    "inspection_companion": {
+      "name": "",
+      "role": ""
+    }
+  },
+  "survey_details": {
+    "survey_date": "",
+    "methodology": {
+      "tools_used": "",
+      "observations_and_discrepancies": ""
+    },
+    "boundary_verification": {
+      "mark_stones_visibility": ""
+    }
+  },
+  "location_and_site_description": {
+    "general_location_description": "",
+    "access_description": "",
+    "gps_coordinates": {
+      "latitude": null,
+      "longitude": null
+    },
+    "locality_description": "",
+    "site_plot_description": {
+      "shape": "",
+      "terrain": "",
+      "drainage": ""
+    }
+  },
+  "property_identification": {
+    "district": "",
+    "county": "",
+    "sub_county_or_area": "",
+    "plot_number": "",
+    "block_number": ""
+  },
+  "timber_inventory": {
+    "tree_species": "",
+    "average_dbh_cm": null,
+    "average_height_m": null,
+    "tree_condition_at_valuation": "",
+    "signs_of_pests_or_disease": ""
+  }
+}

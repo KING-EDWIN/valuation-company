@@ -1,0 +1,25 @@
+{
+  "optional_field_toggles": {
+    "has_problems_or_challenges": false
+  },
+  "conditional_details": {
+    "abbreviations_and_acronyms": [
+      {
+        "acronym": "",
+        "full_form": "",
+        "meaning": ""
+      }
+    ],
+    "problems_and_challenges_encountered": {
+      "description": "",
+      "materially_affected_findings": false
+    }
+  },
+  "deliverables": {
+    "list": ""
+  },
+  "previous_exercise_history": {
+    "months": "",
+    "location": ""
+  }
+}

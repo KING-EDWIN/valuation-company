@@ -1,0 +1,34 @@
+{
+  "inspection_details": {
+    "date_of_inspection": "",
+    "place_of_inspection": "",
+    "mileage_km": null,
+    "inspection_companion": {
+      "name": "",
+      "role": ""
+    }
+  },
+  "vehicle_particulars": {
+    "registration_number": "",
+    "chassis_number": "",
+    "engine_number": "",
+    "make": "",
+    "model": "",
+    "year_of_manufacture": null,
+    "colour": "",
+    "seating_capacity": null
+  },
+  "detailed_inspection_summary": {
+    "general_condition_summary": "",
+    "body_description": "",
+    "engine_performance": "",
+    "chassis_condition": "",
+    "suspension_condition": "",
+    "electrical_system_condition": "",
+    "wheels_and_tyres_condition": ""
+  },
+  "valuation_summary": {
+    "fair_market_value_ugx": null,
+    "forced_sale_value_ugx": null
+  }
+}

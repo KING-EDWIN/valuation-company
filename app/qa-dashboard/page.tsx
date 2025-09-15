@@ -25,6 +25,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import BlockIcon from '@mui/icons-material/Block';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import AddIcon from '@mui/icons-material/Add';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -67,6 +68,12 @@ export default function QADashboard() {
   const total = qaJobs.length;
   const pending = qaJobs.filter(j => j.status === "pending QA").length;
   const completed = jobs.filter(j => j.status === "pending MD approval").length;
+  
+  // For QA officers, also show jobs they can review
+  const allPendingQA = jobs.filter(j => j.status === "pending QA").length;
+  const allAwaitingReview = jobs.filter(j => j.status === "pending QA").length;
+  const allCompletedReviews = jobs.filter(j => j.status === "pending MD approval").length;
+  const allActiveBanks = getAllBanks().length;
 
   // Get all banks
   const allBanks = getAllBanks();
@@ -205,6 +212,15 @@ export default function QADashboard() {
           >
             Back to Dashboard
           </Button>
+          <Box sx={{ flexGrow: 1 }} />
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => router.push('/admin/client-onboarding')}
+            sx={{ bgcolor: 'white', color: '#1e3a8a', '&:hover': { bgcolor: '#eef2ff' } }}
+          >
+            Add New Client
+          </Button>
         </Box>
         <Typography variant="h4" fontWeight={600} mb={1}>
           QA Dashboard
@@ -222,7 +238,7 @@ export default function QADashboard() {
             color: 'white'
           }}>
             <CardContent>
-              <Typography variant="h3" fontWeight={600}>{total}</Typography>
+              <Typography variant="h3" fontWeight={600}>{allPendingQA}</Typography>
               <Typography variant="h6">Total Pending QA</Typography>
             </CardContent>
           </Card>
@@ -232,7 +248,7 @@ export default function QADashboard() {
             color: 'white'
           }}>
             <CardContent>
-              <Typography variant="h3" fontWeight={600}>{pending}</Typography>
+              <Typography variant="h3" fontWeight={600}>{allAwaitingReview}</Typography>
               <Typography variant="h6">Awaiting Review</Typography>
             </CardContent>
           </Card>
@@ -242,7 +258,7 @@ export default function QADashboard() {
             color: 'white'
           }}>
             <CardContent>
-              <Typography variant="h3" fontWeight={600}>{completed}</Typography>
+              <Typography variant="h3" fontWeight={600}>{allCompletedReviews}</Typography>
               <Typography variant="h6">Completed Reviews</Typography>
             </CardContent>
           </Card>
@@ -252,7 +268,7 @@ export default function QADashboard() {
             color: 'white'
           }}>
             <CardContent>
-              <Typography variant="h3" fontWeight={600}>{allBanks.length}</Typography>
+              <Typography variant="h3" fontWeight={600}>{allActiveBanks}</Typography>
               <Typography variant="h6">Active Banks</Typography>
             </CardContent>
           </Card>
@@ -267,6 +283,7 @@ export default function QADashboard() {
               <Tab label="Review Reports" icon={<AssignmentIcon />} />
               <Tab label="Analysis & Analytics" icon={<AnalyticsIcon />} />
               <Tab label="Bank Performance" icon={<BusinessIcon />} />
+              <Tab label="Client Management" icon={<BusinessIcon />} />
               <Tab label="Quality Standards" icon={<CheckBoxIcon />} />
             </Tabs>
           </Box>
@@ -470,8 +487,71 @@ export default function QADashboard() {
             </Box>
           </TabPanel>
 
-          {/* Quality Standards Tab */}
+          {/* Client Management Tab */}
           <TabPanel value={tabValue} index={3}>
+            <Typography variant="h5" fontWeight={600} mb={3}>
+              Client Management
+            </Typography>
+            
+            <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+              <Button
+                variant="outlined"
+                startIcon={<BusinessIcon />}
+                onClick={() => router.push('/admin/client-database')}
+              >
+                View Client Database
+              </Button>
+            </Box>
+
+            <Alert severity="info" sx={{ mb: 3 }}>
+              <Typography variant="h6">Client Management Access</Typography>
+              <Typography variant="body2">
+                As a QA Officer, you have access to client onboarding and database management features. 
+                You can add new clients and view the complete client database to ensure quality control throughout the process.
+              </Typography>
+            </Alert>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+              <Card sx={{ p: 3, border: '1px solid #e0e0e0' }}>
+                <Typography variant="h6" fontWeight={600} mb={2} color="primary">
+                  Quick Client Stats
+                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="body2">Total Clients:</Typography>
+                  <Typography variant="body2" fontWeight={600}>{jobs.length}</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="body2">Active Jobs:</Typography>
+                  <Typography variant="body2" fontWeight={600}>{jobs.filter(j => j.status !== 'complete').length}</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="body2">Completed Jobs:</Typography>
+                  <Typography variant="body2" fontWeight={600}>{jobs.filter(j => j.status === 'complete').length}</Typography>
+                </Box>
+              </Card>
+
+              <Card sx={{ p: 3, border: '1px solid #e0e0e0' }}>
+                <Typography variant="h6" fontWeight={600} mb={2} color="primary">
+                  Recent Client Activity
+                </Typography>
+                <Box sx={{ maxHeight: 200, overflowY: 'auto' }}>
+                  {jobs.slice(0, 5).map((job) => (
+                    <Box key={job.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, borderBottom: '1px solid #f0f0f0' }}>
+                      <Typography variant="body2">{job.clientName}</Typography>
+                      <Chip 
+                        label={job.status} 
+                        size="small" 
+                        color={job.status === 'pending QA' ? 'warning' : job.status === 'complete' ? 'success' : 'default'}
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              </Card>
+            </Box>
+          </TabPanel>
+
+          {/* Quality Standards Tab */}
+          <TabPanel value={tabValue} index={4}>
             <Typography variant="h5" fontWeight={600} mb={3}>
               QA Standards & Checklist System
             </Typography>

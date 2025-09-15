@@ -1,0 +1,31 @@
+{
+  "optional_field_toggles": {
+    "has_incumbrances": false,
+    "is_mortgaged": false,
+    "has_conditions_on_title": false
+  },
+  "conditional_details": {
+    "incumbrances": {
+      "details": ""
+    },
+    "conditions_on_title": {
+      "details": "",
+      "type": ""
+    }
+  },
+  "valuation_details": {
+    "valuation_purpose": "",
+    "valuation_types_requested": []
+  },
+  "terms_of_reference": {
+    "indemnification_clause": "",
+    "report_submission_timeline": "",
+    "report_contents_required": []
+  },
+  "supporting_documents": {
+    "documents_mentioned": []
+  },
+  "report_attachments": {
+    "visual_aids_mentioned": []
+  }
+}

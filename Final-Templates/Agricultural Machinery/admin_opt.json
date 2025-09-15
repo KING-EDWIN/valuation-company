@@ -1,0 +1,28 @@
+{
+  "optional_field_toggles": {
+    "has_liens": false,
+    "is_leased": false
+  },
+  "conditional_details": {
+    "liens_or_encumbrances": {
+      "details": ""
+    },
+    "lease_details": {
+      "details": ""
+    }
+  },
+  "valuation_details": {
+    "valuation_purpose": "",
+    "valuation_types_requested": []
+  },
+  "terms_of_reference": {
+    "indemnification_clause": "",
+    "report_submission_timeline": ""
+  },
+  "supporting_documents": {
+    "documents_mentioned": []
+  },
+  "report_attachments": {
+    "visual_aids_mentioned": []
+  }
+}

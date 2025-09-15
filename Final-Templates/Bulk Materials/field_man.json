@@ -1,0 +1,49 @@
+{
+  "asset_details": {
+    "inspection_details": {
+      "inspection_date": "",
+      "fieldwork_duration": ""
+    },
+    "location_details": {
+      "site_name": "",
+      "district": "",
+      "region": "",
+      "distance_from_city": {
+        "value_km": null,
+        "mode": ""
+      }
+    },
+    "materials_inventory": {
+      "total_volume_computed_m3": null,
+      "stockpiles": [
+        {
+          "material_type": "",
+          "location_description": "",
+          "volume_m3": null
+        }
+      ]
+    }
+  },
+  "methodology": {
+    "volume_computation_method": {
+      "software_used": {
+        "name": "",
+        "version": ""
+      },
+      "tool_used": "",
+      "data_sources": {
+        "base_surface_points_source": "",
+        "top_surface_points_source": ""
+      }
+    },
+    "equipment_used": [
+      {
+        "equipment_name": "",
+        "specifications": ""
+      }
+    ]
+  },
+  "findings": {
+    "overall_summary": ""
+  }
+}

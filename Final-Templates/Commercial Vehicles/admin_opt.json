@@ -1,0 +1,61 @@
+{
+  "conditional_details": {
+    "disclaimers": {
+      "valuation_caveats": "",
+      "report_validity_conditions": "",
+      "report_publication_restrictions": "",
+      "copy_authenticity_disclaimer": "",
+      "mechanical_checkup_disclaimer": "",
+      "valuer_responsibility_limitation": ""
+    },
+    "comparable_properties": [
+      {
+        "source": "",
+        "url": "",
+        "vehicle_details": {
+          "make": "",
+          "model": "",
+          "year_of_manufacture": null
+        },
+        "selling_price": {
+          "value": null,
+          "currency": ""
+        }
+      }
+    ]
+  },
+  "valuation_breakdown_costs_usd": {
+    "cost_insurance_and_freight": null,
+    "current_market_value": null,
+    "port_charges": null,
+    "transport_mombasa_to_kampala": null,
+    "taxes_and_registration": null,
+    "subtotal_total": null,
+    "obsolescence": {
+      "percentage": null,
+      "amount": null
+    },
+    "investors_profit": {
+      "percentage": null,
+      "amount": null
+    },
+    "grand_total": null,
+    "local_currency_conversion": {
+      "exchange_rate_usd_to_ugx": null,
+      "value_ugx": null
+    }
+  },
+  "invoice_details": {
+    "invoice_number": "",
+    "invoice_date": "",
+    "billed_to": {
+      "organization": "",
+      "address": ""
+    },
+    "total_amount_ugx": null,
+    "bank_details": {
+      "bank_name": "",
+      "account_name": ""
+    }
+  }
+}

@@ -1,0 +1,646 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Alert,
+  Snackbar,
+  Grid,
+  TextField,
+  Avatar,
+  Stepper,
+  Step,
+  StepLabel,
+  StepContent,
+  Divider,
+  Badge,
+  Tooltip,
+  CircularProgress
+} from '@mui/material';
+import {
+  ArrowBack as ArrowBackIcon,
+  Assignment as AssignmentIcon,
+  Person as PersonIcon,
+  Edit as EditIcon,
+  CheckCircle as CheckIcon,
+  Warning as WarningIcon,
+  Schedule as ScheduleIcon,
+  AdminPanelSettings as AdminIcon,
+  Engineering as FieldIcon,
+  VerifiedUser as QAIcon,
+  SupervisorAccount as MDIcon,
+  PlayArrow as PlayIcon,
+  Pause as PauseIcon,
+  Stop as StopIcon
+} from '@mui/icons-material';
+import { useJobs, Job } from '../../../components/JobsContext';
+import { useRouter } from 'next/navigation';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  phone: string;
+  department: string;
+}
+
+interface JobAssignment {
+  id: number;
+  job_id: number;
+  admin_id: number;
+  field_worker_id: number | null;
+  qa_id: number | null;
+  md_id: number | null;
+  current_stage: 'admin' | 'field' | 'qa' | 'md' | 'complete';
+  admin_completed_at: string | null;
+  field_completed_at: string | null;
+  qa_completed_at: string | null;
+  md_completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export default function JobAssignments() {
+  const { jobs, updateJob } = useJobs();
+  const router = useRouter();
+  const [users, setUsers] = useState<User[]>([]);
+  const [assignments, setAssignments] = useState<JobAssignment[]>([]);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [selectedFieldWorker, setSelectedFieldWorker] = useState('');
+  const [selectedQA, setSelectedQA] = useState('');
+  const [selectedMD, setSelectedMD] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([fetchUsers(), fetchAssignments()]);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        setSnackbar({ open: true, message: 'Failed to load data', severity: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/users');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data.success) {
+        setUsers(data.users || data.data || []);
+      } else {
+        throw new Error(data.error || 'Failed to fetch users');
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setUsers([]); // Set empty array to prevent undefined errors
+      setSnackbar({ open: true, message: 'Failed to fetch users', severity: 'error' });
+    }
+  };
+
+  const fetchAssignments = async () => {
+    try {
+      const response = await fetch('/api/job-assignments');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data.success) {
+        setAssignments(data.data || []);
+      } else {
+        throw new Error(data.error || 'Failed to fetch assignments');
+      }
+    } catch (error) {
+      console.error('Error fetching assignments:', error);
+      setAssignments([]); // Set empty array to prevent undefined errors
+      setSnackbar({ open: true, message: 'Failed to fetch assignments', severity: 'error' });
+    }
+  };
+
+
+  const handleAssignJob = (job: Job) => {
+    setSelectedJob(job);
+    setSelectedFieldWorker('');
+    setSelectedQA('');
+    setSelectedMD('');
+    setAssignDialogOpen(true);
+  };
+
+  const handleConfirmAssignment = async () => {
+    if (!selectedJob || !selectedFieldWorker) return;
+
+    try {
+      const response = await fetch('/api/job-assignments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          job_id: selectedJob.id,
+          field_worker_id: parseInt(selectedFieldWorker),
+          qa_id: null, // Will be assigned later by field worker
+          md_id: null  // Will be assigned later by QA
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setSnackbar({ 
+          open: true, 
+          message: 'Job assigned to field worker successfully! Field worker can now submit to QA when ready.', 
+          severity: 'success' 
+        });
+        // Refresh assignments data
+        await fetchAssignments();
+        setAssignDialogOpen(false);
+        setSelectedJob(null);
+        setSelectedFieldWorker('');
+      } else {
+        setSnackbar({ open: true, message: data.error || 'Failed to assign job', severity: 'error' });
+      }
+    } catch (error) {
+      console.error('Error assigning job:', error);
+      setSnackbar({ open: true, message: 'Failed to assign job', severity: 'error' });
+    }
+  };
+
+  const getAssignmentForJob = (jobId: number) => {
+    return assignments.find(a => a.job_id === jobId);
+  };
+
+  const getUserById = (userId: number) => {
+    return users.find(u => u.id === userId);
+  };
+
+  const getStageColor = (stage: string) => {
+    switch (stage) {
+      case 'admin': return 'primary';
+      case 'field': return 'warning';
+      case 'qa': return 'info';
+      case 'md': return 'secondary';
+      case 'complete': return 'success';
+      default: return 'default';
+    }
+  };
+
+  const getStageIcon = (stage: string) => {
+    switch (stage) {
+      case 'admin': return <AdminIcon />;
+      case 'field': return <FieldIcon />;
+      case 'qa': return <QAIcon />;
+      case 'md': return <MDIcon />;
+      case 'complete': return <CheckIcon />;
+      default: return <AssignmentIcon />;
+    }
+  };
+
+  const getFieldWorkers = () => users?.filter(u => u.role === 'field_team') || [];
+  const getQAs = () => users?.filter(u => u.role === 'qa' || u.role === 'qa_officer') || [];
+  const getMDs = () => users?.filter(u => u.role === 'md') || [];
+
+  const handleSubmitToNextStage = async (jobId: number, currentStage: string) => {
+    try {
+      const response = await fetch('/api/job-assignments/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          job_id: jobId,
+          current_stage: currentStage
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setSnackbar({ 
+          open: true, 
+          message: `Work submitted to ${data.next_stage} successfully!`, 
+          severity: 'success' 
+        });
+        fetchAssignments();
+      } else {
+        setSnackbar({ open: true, message: data.error || 'Failed to submit work', severity: 'error' });
+      }
+    } catch (error) {
+      console.error('Error submitting work:', error);
+      setSnackbar({ open: true, message: 'Failed to submit work', severity: 'error' });
+    }
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress size={60} />
+          <Typography variant="h6" sx={{ mt: 2 }}>Loading job assignments...</Typography>
+        </Box>
+      </Box>
+    );
+  }
+
+  // Separate jobs into assigned and unassigned based on assignments
+  const unassignedJobs = (jobs || []).filter(job => {
+    const assignment = getAssignmentForJob(job.id);
+    return !assignment || !assignment.field_worker_id;
+  });
+  const assignedJobs = (jobs || []).filter(job => {
+    const assignment = getAssignmentForJob(job.id);
+    return assignment && assignment.field_worker_id;
+  });
+
+  return (
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => router.back()}
+          variant="outlined"
+        >
+          Back
+        </Button>
+        <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <AssignmentIcon color="primary" />
+          Job Assignments & Workflow
+        </Typography>
+      </Box>
+
+      {/* Unassigned Jobs Section */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <WarningIcon color="warning" />
+          Unassigned Jobs ({unassignedJobs.length})
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          These jobs need to be assigned to field workers. Admin can only assign to field supervisors.
+        </Typography>
+        
+        <Grid container spacing={3}>
+          {unassignedJobs.map((job) => (
+            <Grid item xs={12} key={job.id}>
+              <Card sx={{ border: '2px solid', borderColor: 'warning.light' }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+                    <Box>
+                      <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Avatar sx={{ bgcolor: 'warning.main', width: 32, height: 32 }}>
+                          {job.client_name?.charAt(0) || 'C'}
+                        </Avatar>
+                        {job.client_name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        {job.client_info?.email}
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {job.asset_type} - {job.asset_details?.location}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Chip
+                        icon={<WarningIcon />}
+                        label="Unassigned"
+                        color="warning"
+                        size="small"
+                      />
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<EditIcon />}
+                        onClick={() => handleAssignJob(job)}
+                        size="small"
+                      >
+                        Assign to Field Worker
+                      </Button>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+
+      {/* Recently Assigned Jobs Section */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <CheckIcon color="success" />
+          Recently Assigned Jobs ({assignedJobs.length})
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          These jobs have been assigned to field workers. Field workers can submit their work to QA when ready.
+        </Typography>
+        
+        <Grid container spacing={3}>
+          {assignedJobs.map((job) => {
+            const assignment = getAssignmentForJob(job.id);
+            const admin = assignment ? getUserById(assignment.admin_id) : null;
+            const fieldWorker = assignment?.field_worker_id ? getUserById(assignment.field_worker_id) : null;
+            const qa = assignment?.qa_id ? getUserById(assignment.qa_id) : null;
+            const md = assignment?.md_id ? getUserById(assignment.md_id) : null;
+
+            return (
+              <Grid item xs={12} key={job.id}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+                      <Box>
+                        <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                          <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
+                            {job.client_name?.charAt(0) || 'C'}
+                          </Avatar>
+                          {job.client_name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                          {job.client_info?.email}
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {job.asset_type} - {job.asset_details?.location}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Chip
+                          icon={getStageIcon(assignment?.current_stage || 'admin')}
+                          label={assignment?.current_stage || 'Assigned'}
+                          color={getStageColor(assignment?.current_stage || 'admin')}
+                          size="small"
+                        />
+                      </Box>
+                    </Box>
+
+                    <Divider sx={{ mb: 3 }} />
+
+                    <Stepper activeStep={assignment ? ['admin', 'field', 'qa', 'md', 'complete'].indexOf(assignment.current_stage) : 0} alternativeLabel>
+                      <Step>
+                        <StepLabel
+                          StepIconComponent={() => (
+                            <Badge
+                              color={assignment?.admin_completed_at ? 'success' : 'default'}
+                              variant="dot"
+                            >
+                              <AdminIcon color={assignment?.admin_completed_at ? 'success' : 'action'} />
+                            </Badge>
+                          )}
+                        >
+                          Admin
+                          <Typography variant="caption" display="block" sx={{ fontWeight: 500 }}>
+                            {admin?.name || 'Created by Admin'}
+                          </Typography>
+                          <Typography variant="caption" display="block" color="text.secondary">
+                            {assignment?.admin_completed_at ? 'Completed' : 'Created job & report'}
+                          </Typography>
+                        </StepLabel>
+                      </Step>
+                      <Step>
+                        <StepLabel
+                          StepIconComponent={() => (
+                            <Badge
+                              color={assignment?.field_completed_at ? 'success' : 'default'}
+                              variant="dot"
+                            >
+                              <FieldIcon color={assignment?.field_completed_at ? 'success' : 'action'} />
+                            </Badge>
+                          )}
+                        >
+                          Field Worker
+                          <Typography variant="caption" display="block" sx={{ fontWeight: 500 }}>
+                            {fieldWorker?.name || 'Not Assigned'}
+                          </Typography>
+                          <Typography variant="caption" display="block" color="text.secondary">
+                            {assignment?.field_completed_at ? 'Completed fieldwork' : 'Receives from admin'}
+                          </Typography>
+                          {assignment?.current_stage === 'field' && !assignment?.field_completed_at && (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="primary"
+                              startIcon={<PlayIcon />}
+                              onClick={() => handleSubmitToNextStage(job.id, 'field')}
+                              sx={{ mt: 1 }}
+                            >
+                              Submit to QA
+                            </Button>
+                          )}
+                        </StepLabel>
+                      </Step>
+                      <Step>
+                        <StepLabel
+                          StepIconComponent={() => (
+                            <Badge
+                              color={assignment?.qa_completed_at ? 'success' : 'default'}
+                              variant="dot"
+                            >
+                              <QAIcon color={assignment?.qa_completed_at ? 'success' : 'action'} />
+                            </Badge>
+                          )}
+                        >
+                          QA Officer
+                          <Typography variant="caption" display="block" sx={{ fontWeight: 500 }}>
+                            {qa?.name || 'Not Assigned'}
+                          </Typography>
+                          <Typography variant="caption" display="block" color="text.secondary">
+                            {assignment?.qa_completed_at ? 'QA approved' : 'Receives from field'}
+                          </Typography>
+                          {assignment?.current_stage === 'qa' && !assignment?.qa_completed_at && (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="info"
+                              startIcon={<PlayIcon />}
+                              onClick={() => handleSubmitToNextStage(job.id, 'qa')}
+                              sx={{ mt: 1 }}
+                            >
+                              Submit to MD
+                            </Button>
+                          )}
+                        </StepLabel>
+                      </Step>
+                      <Step>
+                        <StepLabel
+                          StepIconComponent={() => (
+                            <Badge
+                              color={assignment?.md_completed_at ? 'success' : 'default'}
+                              variant="dot"
+                            >
+                              <MDIcon color={assignment?.md_completed_at ? 'success' : 'action'} />
+                            </Badge>
+                          )}
+                        >
+                          MD
+                          <Typography variant="caption" display="block" sx={{ fontWeight: 500 }}>
+                            {md?.name || 'Not Assigned'}
+                          </Typography>
+                          <Typography variant="caption" display="block" color="text.secondary">
+                            {assignment?.md_completed_at ? 'Final approval' : 'Final review'}
+                          </Typography>
+                          {assignment?.current_stage === 'md' && !assignment?.md_completed_at && (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="secondary"
+                              startIcon={<CheckIcon />}
+                              onClick={() => handleSubmitToNextStage(job.id, 'md')}
+                              sx={{ mt: 1 }}
+                            >
+                              Mark Complete
+                            </Button>
+                          )}
+                        </StepLabel>
+                      </Step>
+                      <Step>
+                        <StepLabel
+                          StepIconComponent={() => (
+                            <Badge
+                              color={assignment?.current_stage === 'complete' ? 'success' : 'default'}
+                              variant="dot"
+                            >
+                              <CheckIcon color={assignment?.current_stage === 'complete' ? 'success' : 'action'} />
+                            </Badge>
+                          )}
+                        >
+                          Complete
+                        </StepLabel>
+                      </Step>
+                    </Stepper>
+
+                    {assignment && (
+                      <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                        <Typography variant="subtitle2" gutterBottom>Assignment Details:</Typography>
+                        <Grid container spacing={2}>
+                          <Grid item xs={6} sm={3}>
+                            <Typography variant="caption" color="text.secondary">Admin</Typography>
+                            <Typography variant="body2">{admin?.name || 'Unknown'}</Typography>
+                          </Grid>
+                          <Grid item xs={6} sm={3}>
+                            <Typography variant="caption" color="text.secondary">Field Worker</Typography>
+                            <Typography variant="body2">{fieldWorker?.name || 'Not Assigned'}</Typography>
+                          </Grid>
+                          <Grid item xs={6} sm={3}>
+                            <Typography variant="caption" color="text.secondary">QA Officer</Typography>
+                            <Typography variant="body2">{qa?.name || 'Not Assigned'}</Typography>
+                          </Grid>
+                          <Grid item xs={6} sm={3}>
+                            <Typography variant="caption" color="text.secondary">MD</Typography>
+                            <Typography variant="body2">{md?.name || 'Not Assigned'}</Typography>
+                          </Grid>
+                        </Grid>
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          })}
+        </Grid>
+      </Box>
+
+      {/* Assignment Dialog */}
+      <Dialog open={assignDialogOpen} onClose={() => setAssignDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Assign Job Workflow</DialogTitle>
+        <DialogContent>
+          {selectedJob && (
+            <Box sx={{ mt: 2 }}>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" gutterBottom>Job Details:</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Client:</strong> {selectedJob.clientName}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Project:</strong> {selectedJob.assetType}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Location:</strong> {selectedJob.assetDetails?.location}
+                  </Typography>
+                </Grid>
+                
+                <Grid item xs={12}>
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    <Typography variant="body2">
+                      <strong>Admin Assignment:</strong> You can only assign this job to a Field Worker. 
+                      The Field Worker will then submit their work to QA, and QA will submit to MD when ready.
+                    </Typography>
+                  </Alert>
+                </Grid>
+
+                <Grid item xs={12} sm={8}>
+                  <FormControl fullWidth>
+                    <InputLabel>Assign to Field Worker</InputLabel>
+                    <Select
+                      value={selectedFieldWorker}
+                      onChange={(e) => setSelectedFieldWorker(e.target.value)}
+                      label="Assign to Field Worker"
+                    >
+                      {getFieldWorkers().map((user) => (
+                        <MenuItem key={user.id} value={user.id.toString()}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <FieldIcon fontSize="small" />
+                            <Box>
+                              <Typography variant="body2">{user.name}</Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {user.email}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAssignDialogOpen(false)}>Cancel</Button>
+          <Button 
+            onClick={handleConfirmAssignment} 
+            variant="contained"
+            disabled={!selectedFieldWorker}
+          >
+            Assign to Field Worker
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
+  );
+}

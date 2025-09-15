@@ -1,0 +1,65 @@
+{
+  "project_details": {
+    "project_id": "",
+    "report_date": "",
+    "effective_date_of_valuation": "",
+    "instructing_party_details": {
+      "name": "",
+      "address": "",
+      "contact_person": "",
+      "purpose_of_valuation": ""
+    }
+  },
+  "asset_details": {
+    "property_location": "",
+    "land_area": {
+      "area_acres": null,
+      "area_hectares": null
+    },
+    "property_identification": {
+      "plot_number": "",
+      "block_number": "",
+      "district": "",
+      "county": ""
+    },
+    "tree_details": {
+      "tree_species": "",
+      "average_age_years": null,
+      "plantation_notes": ""
+    }
+  },
+  "tenure_details": {
+    "interest_type": "",
+    "registered_proprietor": {
+      "name": "",
+      "address": ""
+    }
+  },
+  "market_and_use_analysis": {
+    "highest_and_best_use": "",
+    "market_research": {
+      "likely_purchaser_profile": "",
+      "similar_land_price_range_ugx": {
+        "min_per_acre": null,
+        "max_per_acre": null
+      }
+    }
+  },
+  "valuation_summary": {
+    "basis_of_valuation": "",
+    "market_value_ugx": null,
+    "forced_sale_value_ugx": null,
+    "market_value_words": "",
+    "forced_sale_value_words": ""
+  },
+  "report_declarations": {
+    "liability_declaration": ""
+  },
+  "consultant_details": {
+    "firm_name": "",
+    "registered_surveyor": {
+      "name": "",
+      "qualifications": ""
+    }
+  }
+}

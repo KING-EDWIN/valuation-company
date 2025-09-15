@@ -1,0 +1,24 @@
+{
+  "location_and_site_description": {
+    "distance_to_nearest_city_km": null,
+    "road_access_type": ""
+  },
+  "site_conditions": {
+    "available_services": {
+      "main_electricity_supply_connected": false,
+      "main_water_supply_connected": false
+    },
+    "environmental_considerations": {
+      "susceptible_to_flooding": false,
+      "environmental_contamination_evidence": ""
+    }
+  },
+  "boundaries_and_improvements": {
+    "encroachment_signs": "",
+    "structures_on_plot": ""
+  },
+  "property_strengths_weaknesses": {
+    "strengths": "",
+    "weaknesses": ""
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "project_details": {
+    "project_id": "",
+    "project_date": "",
+    "report_title": "Commercial Vehicle Valuation Report",
+    "report_reference_number": "",
+    "effective_date_of_valuation": "",
+    "valuation_purpose": "",
+    "report_recipient": {
+      "name": "",
+      "organization": "",
+      "branch": ""
+    }
+  },
+  "client_details": {
+    "primary_client": "",
+    "client_contact": {
+      "name": "",
+      "role": "",
+      "contact_number": ""
+    }
+  },
+  "instruction_details": {
+    "instruction_date": "",
+    "instruction_reference": "",
+    "instruction_requirements": ""
+  },
+  "logbook_details": {
+    "logbook_search_status": "",
+    "current_owner": {
+      "name": "",
+      "postal_address": "",
+      "tin": ""
+    },
+    "vehicle_details": {
+      "registration_number": "",
+      "chassis_number": "",
+      "engine_number": "",
+      "make": "",
+      "model": "",
+      "model_series": "",
+      "year_of_manufacture": null
+    }
+  },
+  "consultant_details": {
+    "firm_name": "",
+    "company_address": "",
+    "signatory": {
+      "name": "",
+      "qualifications": "",
+      "role": ""
+    }
+  }
+}

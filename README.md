@@ -1,4 +1,4 @@
-# Stanfield Demo – Valuers Meeting Management System
+# STANFIELD PARTNERS – Valuers Meeting Management System
 
 This is a demo application for managing the workflow of a property valuation company, built with **Next.js** and **Material UI**. It features role-based access for all key steps in the valuation process, from client instruction to final billing.
 
@@ -42,4 +42,4 @@ This is a demo application for managing the workflow of a property valuation com
 
 ---
 
-Built for Stanfield as a workflow demo.
+Built for STANFIELD PARTNERS as a workflow demo.

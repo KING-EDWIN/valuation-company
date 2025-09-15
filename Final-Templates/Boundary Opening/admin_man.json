@@ -1,0 +1,62 @@
+{
+  "project_details": {
+    "report_title": "",
+    "report_reference_number": "",
+    "report_date": "",
+    "assignment_type": "",
+    "assignment_purpose": "",
+    "report_recipient": {
+      "name": "",
+      "organization": "",
+      "branch": "",
+      "location": ""
+    }
+  },
+  "client_details": {
+    "name": "",
+    "branch": "",
+    "location": "",
+    "contact_person": {
+      "name": "",
+      "contact_number": "",
+      "role": ""
+    }
+  },
+  "registered_proprietor": {
+    "name": "",
+    "address": "",
+    "contact_number": ""
+  },
+  "legal_and_title_info": {
+    "certificate_of_title": {
+      "title_number": "",
+      "volume": "",
+      "folio": "",
+      "title_date": "",
+      "tenure_type": "",
+      "estate_type": "",
+      "registration_type": ""
+    },
+    "title_details": {
+      "instrument_number": "",
+      "registration_date": "",
+      "land_type": ""
+    }
+  },
+  "related_documents": {
+    "certificate_of_title": {
+      "document_type": "",
+      "act": "",
+      "issuing_authority": ""
+    },
+    "deed_print_used": ""
+  },
+  "search_report_details": {
+    "search_reference_number": "",
+    "search_date": "",
+    "search_signed_by": {
+      "name": "",
+      "role": ""
+    }
+  }
+}

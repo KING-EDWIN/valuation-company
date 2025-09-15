@@ -1,0 +1,22 @@
+{
+  "firm_details": {
+    "name": "",
+    "address": "",
+    "contact": {
+      "phone": "",
+      "email": ""
+    },
+    "report_signatory": {
+      "name": "",
+      "title": "",
+      "qualifications": ""
+    }
+  },
+  "standard_disclaimers": {
+    "liability_declaration": "",
+    "directors_reliance_statement": "",
+    "report_reliance_statement": "",
+    "fraudulent_transfer_verification_competence": false,
+    "identity_verification_competence": false
+  }
+}

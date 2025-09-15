@@ -1,0 +1,22 @@
+{
+  "optional_field_toggles": {
+    "has_repairs_needed": false,
+    "has_modifications": false,
+    "has_operational_issues": false
+  },
+  "conditional_details": {
+    "repairs_needed": {
+      "description": ""
+    },
+    "modifications_made": {
+      "description": ""
+    },
+    "operational_issues": {
+      "description": ""
+    }
+  },
+  "supporting_documents_availability": {
+    "photos_available": false,
+    "videos_available": false
+  }
+}

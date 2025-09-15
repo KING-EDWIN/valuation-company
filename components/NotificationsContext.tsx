@@ -1,307 +1,225 @@
 'use client';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useUser } from './UserContext';
 
-import React, { createContext, useContext, useState } from 'react';
-import { Role } from './UserContext';
-
-export interface Notification {
-  id: string;
+interface Notification {
+  id: number;
+  user_id: number;
+  from_user_id?: number;
   title: string;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
-  timestamp: string;
+  type: 'info' | 'success' | 'warning' | 'error' | 'message';
+  category: 'system' | 'job' | 'user' | 'communication' | 'approval';
+  priority: 'low' | 'normal' | 'high' | 'urgent';
   read: boolean;
-  actionUrl?: string;
-  priority: 'low' | 'medium' | 'high';
+  read_at?: string;
+  action_url?: string;
+  metadata?: any;
+  created_at: string;
+  updated_at: string;
+  from_user_name?: string;
+  from_user_role?: string;
 }
 
 interface NotificationsContextType {
-  notifications: Record<Role, Notification[]>;
-  addNotification: (role: Role, notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
-  markAsRead: (role: Role, notificationId: string) => void;
-  markAllAsRead: (role: Role) => void;
-  deleteNotification: (role: Role, notificationId: string) => void;
-  getUnreadCount: (role: Role) => number;
-  clearAllNotifications: (role: Role) => void;
+  notifications: Notification[];
+  unreadCount: number;
+  loading: boolean;
+  error: string | null;
+  addNotification: (notification: Omit<Notification, 'id' | 'created_at' | 'updated_at'>) => void;
+  markAsRead: (id: number) => void;
+  markAllAsRead: () => void;
+  removeNotification: (id: number) => void;
+  clearAll: () => void;
+  refreshNotifications: () => void;
 }
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
 
-export const useNotifications = () => {
-  const context = useContext(NotificationsContext);
-  if (!context) {
-    throw new Error('useNotifications must be used within a NotificationsProvider');
-  }
-  return context;
-};
+export function NotificationsProvider({ children }: { children: React.ReactNode }) {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useUser();
 
-export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [notifications, setNotifications] = useState<Record<Role, Notification[]>>({
-    admin: [
-      {
-        id: 'admin-1',
-        title: 'New Client Onboarded',
-        message: 'XYZ Development Company has been added to the system. Field team has been notified.',
-        type: 'success',
-        timestamp: '2024-01-24T14:30:00Z',
-        read: false,
-        actionUrl: '/admin/client-database',
-        priority: 'medium'
-      },
-      {
-        id: 'admin-2',
-        title: 'Field Report Ready for Review',
-        message: 'ABC Bank Limited field inspection report is ready for your review.',
-        type: 'info',
-        timestamp: '2024-01-21T09:15:00Z',
-        read: false,
-        actionUrl: '/admin/report-review',
-        priority: 'high'
-      },
-      {
-        id: 'admin-3',
-        title: 'Payment Received',
-        message: 'MNO Real Estate project payment has been confirmed by accounts.',
-        type: 'success',
-        timestamp: '2024-01-30T16:45:00Z',
-        read: true,
-        actionUrl: '/admin/client-database',
-        priority: 'low'
-      },
-      {
-        id: 'admin-4',
-        title: 'System Maintenance',
-        message: 'Scheduled system maintenance will occur tonight at 2:00 AM.',
-        type: 'warning',
-        timestamp: '2024-01-24T10:00:00Z',
-        read: false,
-        priority: 'medium'
-      }
-    ],
-    field_team: [
-      {
-        id: 'field-1',
-        title: 'New Assignment',
-        message: 'You have been assigned to inspect GHI Savings Cooperative property in Makindye.',
-        type: 'info',
-        timestamp: '2024-01-23T11:30:00Z',
-        read: false,
-        actionUrl: '/field-dashboard',
-        priority: 'high'
-      },
-      {
-        id: 'field-2',
-        title: 'Assignment Reminder',
-        message: 'JKL Investment Group warehouse inspection is due in 2 days.',
-        type: 'warning',
-        timestamp: '2024-01-24T08:00:00Z',
-        read: false,
-        actionUrl: '/field-dashboard',
-        priority: 'medium'
-      },
-      {
-        id: 'field-3',
-        title: 'Report Approved',
-        message: 'Your field report for ABC Bank Limited has been approved by admin.',
-        type: 'success',
-        timestamp: '2024-01-21T10:00:00Z',
-        read: true,
-        actionUrl: '/field-dashboard',
-        priority: 'low'
-      }
-    ],
-    qa_officer: [
-      {
-        id: 'qa-1',
-        title: 'Report Ready for QA',
-        message: 'ABC Bank Limited report is ready for quality assurance review.',
-        type: 'info',
-        timestamp: '2024-01-21T14:00:00Z',
-        read: false,
-        actionUrl: '/qa-dashboard',
-        priority: 'high'
-      },
-      {
-        id: 'qa-2',
-        title: 'QA Review Completed',
-        message: 'DEF Microfinance report has been reviewed and forwarded to MD.',
-        type: 'success',
-        timestamp: '2024-01-25T16:30:00Z',
-        read: true,
-        actionUrl: '/qa-dashboard',
-        priority: 'low'
-      },
-      {
-        id: 'qa-3',
-        title: 'Document Verification Required',
-        message: 'Additional documents needed for MNO Real Estate project.',
-        type: 'warning',
-        timestamp: '2024-01-28T11:15:00Z',
-        read: false,
-        actionUrl: '/qa-dashboard',
-        priority: 'medium'
-      }
-    ],
-    md: [
-      {
-        id: 'md-1',
-        title: 'Approval Required',
-        message: 'DEF Microfinance project is pending your final approval.',
-        type: 'info',
-        timestamp: '2024-01-25T17:00:00Z',
-        read: false,
-        actionUrl: '/md-dashboard',
-        priority: 'high'
-      },
-      {
-        id: 'md-2',
-        title: 'Project Approved',
-        message: 'MNO Real Estate project has been approved and completed.',
-        type: 'success',
-        timestamp: '2024-01-30T15:00:00Z',
-        read: true,
-        actionUrl: '/md-dashboard',
-        priority: 'low'
-      },
-      {
-        id: 'md-3',
-        title: 'Monthly Report',
-        message: 'January 2024 performance report is ready for review.',
-        type: 'info',
-        timestamp: '2024-01-31T09:00:00Z',
-        read: false,
-        actionUrl: '/md-dashboard',
-        priority: 'medium'
-      }
-    ],
-    accounts: [
-      {
-        id: 'accounts-1',
-        title: 'Payment Received',
-        message: 'Payment of UGX 850,000,000 received for MNO Real Estate project.',
-        type: 'success',
-        timestamp: '2024-01-30T14:30:00Z',
-        read: false,
-        actionUrl: '/accounts-dashboard',
-        priority: 'medium'
-      },
-      {
-        id: 'accounts-2',
-        title: 'Invoice Generated',
-        message: 'Invoice for ABC Bank Limited project has been generated.',
-        type: 'info',
-        timestamp: '2024-01-22T10:15:00Z',
-        read: true,
-        actionUrl: '/accounts-dashboard',
-        priority: 'low'
-      },
-      {
-        id: 'accounts-3',
-        title: 'Payment Due',
-        message: 'Payment for DEF Microfinance project is due in 5 days.',
-        type: 'warning',
-        timestamp: '2024-01-26T12:00:00Z',
-        read: false,
-        actionUrl: '/accounts-dashboard',
-        priority: 'high'
-      }
-    ],
-    system_manager: [
-      {
-        id: 'system-1',
-        title: 'System Overview',
-        message: 'Daily system status report is available for review.',
-        type: 'info',
-        timestamp: '2024-01-31T08:00:00Z',
-        read: false,
-        actionUrl: '/system-manager-dashboard',
-        priority: 'medium'
-      },
-      {
-        id: 'system-2',
-        title: 'Performance Metrics',
-        message: 'Weekly performance metrics have been updated.',
-        type: 'success',
-        timestamp: '2024-01-30T16:00:00Z',
-        read: true,
-        actionUrl: '/system-manager-dashboard',
-        priority: 'low'
-      }
-    ],
-    client: [
-      {
-        id: 'client-1',
-        title: 'Project Update',
-        message: 'Your project status has been updated. Please review.',
-        type: 'info',
-        timestamp: '2024-01-31T10:00:00Z',
-        read: false,
-        actionUrl: '/dashboard',
-        priority: 'medium'
-      }
-    ]
-  });
+  // Fetch notifications from API
+  const fetchNotifications = async () => {
+    if (!user?.id) return;
 
-  const addNotification = (role: Role, notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
-    const newNotification: Notification = {
-      ...notification,
-      id: `${role}-${Date.now()}`,
-      timestamp: new Date().toISOString(),
-      read: false,
-    };
+    setLoading(true);
+    setError(null);
 
-    setNotifications(prev => ({
-      ...prev,
-      [role]: [newNotification, ...prev[role]]
-    }));
+    try {
+      const response = await fetch(`/api/notifications?user_id=${user.id}&limit=50`);
+      const data = await response.json();
+
+      if (data.success) {
+        setNotifications(data.notifications);
+      } else {
+        setError(data.error || 'Failed to fetch notifications');
+      }
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+      setError('Failed to fetch notifications');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const markAsRead = (role: Role, notificationId: string) => {
-    setNotifications(prev => ({
-      ...prev,
-      [role]: prev[role].map(notification =>
-        notification.id === notificationId
-          ? { ...notification, read: true }
-          : notification
-      )
-    }));
+  // Load notifications when user changes
+  useEffect(() => {
+    if (user?.id) {
+      fetchNotifications();
+    } else {
+      setNotifications([]);
+    }
+  }, [user?.id]);
+
+  // Set up polling for real-time updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const interval = setInterval(fetchNotifications, 30000); // Poll every 30 seconds
+    return () => clearInterval(interval);
+  }, [user?.id]);
+
+  const addNotification = async (notification: Omit<Notification, 'id' | 'created_at' | 'updated_at'>) => {
+    if (!user?.id) return;
+
+    try {
+      const response = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...notification,
+          user_id: user.id
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNotifications(prev => [data.notification, ...prev]);
+      } else {
+        setError(data.error || 'Failed to create notification');
+      }
+    } catch (err) {
+      console.error('Error creating notification:', err);
+      setError('Failed to create notification');
+    }
   };
 
-  const markAllAsRead = (role: Role) => {
-    setNotifications(prev => ({
-      ...prev,
-      [role]: prev[role].map(notification => ({ ...notification, read: true }))
-    }));
+  const markAsRead = async (id: number) => {
+    try {
+      const response = await fetch(`/api/notifications/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ read: true }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNotifications(prev =>
+          prev.map(notification =>
+            notification.id === id ? { ...notification, read: true, read_at: new Date().toISOString() } : notification
+          )
+        );
+      } else {
+        setError(data.error || 'Failed to mark notification as read');
+      }
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+      setError('Failed to mark notification as read');
+    }
   };
 
-  const deleteNotification = (role: Role, notificationId: string) => {
-    setNotifications(prev => ({
-      ...prev,
-      [role]: prev[role].filter(notification => notification.id !== notificationId)
-    }));
+  const markAllAsRead = async () => {
+    if (!user?.id) return;
+
+    try {
+      // Mark all unread notifications as read
+      const unreadNotifications = notifications.filter(n => !n.read);
+      
+      for (const notification of unreadNotifications) {
+        await markAsRead(notification.id);
+      }
+    } catch (err) {
+      console.error('Error marking all notifications as read:', err);
+      setError('Failed to mark all notifications as read');
+    }
   };
 
-  const getUnreadCount = (role: Role) => {
-    return notifications[role].filter(notification => !notification.read).length;
+  const removeNotification = async (id: number) => {
+    try {
+      const response = await fetch(`/api/notifications/${id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNotifications(prev => prev.filter(notification => notification.id !== id));
+      } else {
+        setError(data.error || 'Failed to delete notification');
+      }
+    } catch (err) {
+      console.error('Error deleting notification:', err);
+      setError('Failed to delete notification');
+    }
   };
 
-  const clearAllNotifications = (role: Role) => {
-    setNotifications(prev => ({
-      ...prev,
-      [role]: []
-    }));
+  const clearAll = async () => {
+    if (!user?.id) return;
+
+    try {
+      // Delete all notifications for the user
+      const deletePromises = notifications.map(notification => 
+        fetch(`/api/notifications/${notification.id}`, { method: 'DELETE' })
+      );
+      
+      await Promise.all(deletePromises);
+      setNotifications([]);
+    } catch (err) {
+      console.error('Error clearing all notifications:', err);
+      setError('Failed to clear all notifications');
+    }
   };
+
+  const refreshNotifications = () => {
+    fetchNotifications();
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <NotificationsContext.Provider value={{
-      notifications,
-      addNotification,
-      markAsRead,
-      markAllAsRead,
-      deleteNotification,
-      getUnreadCount,
-      clearAllNotifications,
-    }}>
+    <NotificationsContext.Provider
+      value={{
+        notifications,
+        unreadCount,
+        loading,
+        error,
+        addNotification,
+        markAsRead,
+        markAllAsRead,
+        removeNotification,
+        clearAll,
+        refreshNotifications,
+      }}
+    >
       {children}
     </NotificationsContext.Provider>
   );
-}; 
+}
+
+export function useNotifications() {
+  const context = useContext(NotificationsContext);
+  if (context === undefined) {
+    throw new Error('useNotifications must be used within a NotificationsProvider');
+  }
+  return context;
+}

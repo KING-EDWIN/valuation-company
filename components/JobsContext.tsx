@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export interface Job {
   id: string;
@@ -72,15 +72,18 @@ export interface Job {
 
 interface JobsContextType {
   jobs: Job[];
-  addJob: (job: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateJob: (id: string, updates: Partial<Job>) => void;
-  deleteJob: (id: string) => void;
+  loading: boolean;
+  error: string | null;
+  addJob: (job: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateJob: (id: string, updates: Partial<Job>) => Promise<void>;
+  deleteJob: (id: string) => Promise<void>;
   getJobsByStatus: (status: string) => Job[];
   getJobsByBank: (bankName: string) => Job[];
   getJobsByNeighborhood: (neighborhood: string) => Job[];
   getJobsByProperty: (location: string, plotNo?: string) => Job[];
   getBankStatistics: () => { [key: string]: number };
   getAllBanks: () => string[];
+  refreshJobs: () => Promise<void>;
 }
 
 const JobsContext = createContext<JobsContextType | undefined>(undefined);
@@ -94,339 +97,170 @@ export const useJobs = () => {
 };
 
 export const JobsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [jobs, setJobs] = useState<Job[]>([
-    {
-      id: 'job-1',
-      clientName: 'ABC Bank Limited',
-      clientInfo: {
-        clientType: 'Financial Institution',
-        contactNumber: '+256 700 123 456',
-        email: 'loans@abcbank.ug',
-        address: 'Plot 123, Kampala Road, Kampala'
-      },
-      assetType: 'Commercial Property',
-      assetDetails: {
-        location: 'Nakasero, Kampala',
-        size: '2,500 sqm',
-        propertyUse: 'Office Building',
-        previousWorkHistory: ['Valuation 2022', 'Inspection 2021'],
-        neighborhood: ['Nakasero', 'Kololo', 'Old Kampala']
-      },
-      valuationRequirements: {
-        purpose: 'Mortgage Security',
-        value: 850000000,
-        currency: 'UGX',
-        deadline: '2024-02-15'
-      },
-      bankInfo: {
-        bankName: 'ABC Bank',
-        branch: 'Kampala Main',
-        contactPerson: 'John Muwonge',
-        contactNumber: '+256 700 123 456'
-      },
-      status: 'pending QA',
-      qaChecklist: {
-        completed: false,
-        items: ['Field Report Review', 'Document Verification', 'Value Assessment'],
-        notes: 'Field inspection completed, awaiting QA review'
-      },
-      createdAt: '2024-01-15T10:00:00Z',
-      updatedAt: '2024-01-20T14:30:00Z',
-      fieldReportData: {
-        inspectionDate: '2024-01-20',
-        siteConditions: 'Excellent - Well maintained commercial building with modern amenities',
-        measurements: 'Length: 50m, Width: 50m, Height: 15m',
-        photos: ['photo1.jpg', 'photo2.jpg', 'photo3.jpg'],
-        notes: 'Property in prime location with high rental yields. Building condition is excellent with modern finishes.',
-        documents: {
-          orthophoto: 'orthophoto_job1.pdf',
-          topographic: 'topographic_job1.pdf',
-          areaSchedule: 'area_schedule_job1.pdf',
-          titleSearch: 'title_search_job1.pdf',
-          occupancyPermit: 'occupancy_permit_job1.pdf',
-          additionalDocs: ['site_plan_job1.pdf', 'structural_report_job1.pdf']
-        }
-      },
-      adminReviewed: true,
-      adminReviewDate: '2024-01-21T09:00:00Z',
-      adminReviewNotes: 'Field report comprehensive and well documented. Ready for QA review.',
-      chain: {
-        surveyor: 'John Smith',
-        qa: 'Sarah Johnson'
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch jobs from API
+  const fetchJobs = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/jobs', { cache: 'no-store' as RequestCache });
+      const data = await response.json();
+      
+      if (data.success) {
+        // Transform database data to match Job interface
+        const transformedJobs = data.data.map((job: any) => ({
+          ...job,
+          id: job.id.toString(),
+          clientInfo: job.client_info || {},
+          assetDetails: job.asset_details || {},
+          valuationRequirements: job.valuation_requirements || {},
+          bankInfo: job.bank_info || {},
+          qaChecklist: job.qa_checklist || { completed: false, items: [], notes: "" },
+          fieldReportData: job.field_report_data,
+          adminReviewed: job.admin_reviewed || false,
+          adminReviewDate: job.admin_review_date,
+          adminReviewNotes: job.admin_review_notes,
+          qaNotes: job.qa_notes,
+          mdApproval: job.md_approval,
+          paymentReceived: job.payment_received || false,
+          revocationReason: job.revocation_reason,
+          chain: job.chain || {},
+          createdAt: job.created_at,
+          updatedAt: job.updated_at
+        }));
+        
+        setJobs(transformedJobs);
+        setError(null);
+      } else {
+        setError('Failed to fetch jobs');
       }
-    },
-    {
-      id: 'job-2',
-      clientName: 'XYZ Development Company',
-      clientInfo: {
-        clientType: 'Private Company',
-        contactNumber: '+256 700 234 567',
-        email: 'info@xyzdev.ug',
-        address: 'Plot 456, Entebbe Road, Kampala'
-      },
-      assetType: 'Residential Property',
-      assetDetails: {
-        location: 'Kololo, Kampala',
-        size: '1,200 sqm',
-        propertyUse: 'Residential Villa',
-        previousWorkHistory: ['Site Survey 2023'],
-        neighborhood: ['Kololo', 'Nakasero', 'Old Kampala']
-      },
-      valuationRequirements: {
-        purpose: 'Insurance Assessment',
-        value: 450000000,
-        currency: 'UGX',
-        deadline: '2024-02-20'
-      },
-      bankInfo: {
-        bankName: 'XYZ Bank',
-        branch: 'Kololo Branch',
-        contactPerson: 'Sarah Nalukenge',
-        contactNumber: '+256 700 234 567'
-      },
-      status: 'pending fieldwork',
-      qaChecklist: {
-        completed: false,
-        items: ['Site Inspection', 'Document Collection', 'Initial Assessment'],
-        notes: 'New assignment, awaiting field team inspection'
-      },
-      createdAt: '2024-01-22T08:00:00Z',
-      updatedAt: '2024-01-22T08:00:00Z',
-      chain: {
-        surveyor: 'John Smith'
-      }
-    },
-    {
-      id: 'job-3',
-      clientName: 'DEF Microfinance',
-      clientInfo: {
-        clientType: 'Microfinance Institution',
-        contactNumber: '+256 700 345 678',
-        email: 'loans@defmicro.ug',
-        address: 'Plot 789, Jinja Road, Kampala'
-      },
-      assetType: 'Vacant Land',
-      assetDetails: {
-        location: 'Ntinda, Kampala',
-        size: '5,000 sqm',
-        propertyUse: 'Development Land',
-        previousWorkHistory: ['Boundary Survey 2022'],
-        neighborhood: ['Ntinda', 'Kisaasi', 'Bukoto']
-      },
-      valuationRequirements: {
-        purpose: 'Loan Security',
-        value: 120000000,
-        currency: 'UGX',
-        deadline: '2024-02-25'
-      },
-      bankInfo: {
-        bankName: 'DEF Bank',
-        branch: 'Ntinda Branch',
-        contactPerson: 'Michael Kato',
-        contactNumber: '+256 700 345 678'
-      },
-      status: 'pending MD approval',
-      qaChecklist: {
-        completed: true,
-        items: ['Field Report Review', 'Document Verification', 'Value Assessment', 'QA Approval'],
-        notes: 'QA review completed, awaiting MD final approval'
-      },
-      createdAt: '2024-01-10T09:00:00Z',
-      updatedAt: '2024-01-25T16:00:00Z',
-      fieldReportData: {
-        inspectionDate: '2024-01-18',
-        siteConditions: 'Good - Flat land suitable for development, good road access',
-        measurements: 'Length: 100m, Width: 50m',
-        photos: ['photo1.jpg', 'photo2.jpg'],
-        notes: 'Prime development land with excellent road access. Suitable for residential or commercial development.',
-        documents: {
-          orthophoto: 'orthophoto_job3.pdf',
-          topographic: 'topographic_job3.pdf',
-          areaSchedule: 'area_schedule_job3.pdf',
-          titleSearch: 'title_search_job3.pdf',
-          occupancyPermit: 'N/A',
-          additionalDocs: ['zoning_report_job3.pdf', 'soil_test_job3.pdf']
-        }
-      },
-      adminReviewed: true,
-      adminReviewDate: '2024-01-19T10:00:00Z',
-      adminReviewNotes: 'Field report approved and forwarded to QA.',
-      qaNotes: 'All documents verified. Valuation methodology sound. Recommended for approval.',
-      chain: {
-        surveyor: 'John Smith',
-        qa: 'Sarah Johnson',
-        md: 'Dr. Michael Brown'
-      }
-    },
-    {
-      id: 'job-4',
-      clientName: 'GHI Savings Cooperative',
-      clientInfo: {
-        clientType: 'Cooperative Society',
-        contactNumber: '+256 700 456 789',
-        email: 'info@ghisavings.ug',
-        address: 'Plot 321, Masaka Road, Kampala'
-      },
-      assetType: 'Institutional Property',
-      assetDetails: {
-        location: 'Makindye, Kampala',
-        size: '3,000 sqm',
-        propertyUse: 'School Building',
-        previousWorkHistory: ['Maintenance Assessment 2023'],
-        neighborhood: ['Makindye', 'Nsambya', 'Kabalagala']
-      },
-      valuationRequirements: {
-        purpose: 'Asset Valuation',
-        value: 650000000,
-        currency: 'UGX',
-        deadline: '2024-03-01'
-      },
-      bankInfo: {
-        bankName: 'GHI Bank',
-        branch: 'Makindye Branch',
-        contactPerson: 'Grace Namukasa',
-        contactNumber: '+256 700 456 789'
-      },
-      status: 'pending fieldwork',
-      qaChecklist: {
-        completed: false,
-        items: ['Site Inspection', 'Document Collection', 'Initial Assessment'],
-        notes: 'New assignment, awaiting field team inspection'
-      },
-      createdAt: '2024-01-23T11:00:00Z',
-      updatedAt: '2024-01-23T11:00:00Z',
-      chain: {
-        surveyor: 'John Smith'
-      }
-    },
-    {
-      id: 'job-5',
-      clientName: 'JKL Investment Group',
-      clientInfo: {
-        clientType: 'Investment Company',
-        contactNumber: '+256 700 567 890',
-        email: 'investments@jklgroup.ug',
-        address: 'Plot 654, Mbarara Road, Kampala'
-      },
-      assetType: 'Commercial Property',
-      assetDetails: {
-        location: 'Industrial Area, Kampala',
-        size: '8,000 sqm',
-        propertyUse: 'Warehouse Complex',
-        previousWorkHistory: ['Rental Assessment 2023', 'Structural Survey 2022'],
-        neighborhood: ['Industrial Area', 'Nakawa', 'Luzira']
-      },
-      valuationRequirements: {
-        purpose: 'Investment Analysis',
-        value: 1200000000,
-        currency: 'UGX',
-        deadline: '2024-03-05'
-      },
-      bankInfo: {
-        bankName: 'JKL Bank',
-        branch: 'Industrial Branch',
-        contactPerson: 'David Ssemwogerere',
-        contactNumber: '+256 700 567 890'
-      },
-      status: 'pending fieldwork',
-      qaChecklist: {
-        completed: false,
-        items: ['Site Inspection', 'Document Collection', 'Initial Assessment'],
-        notes: 'New assignment, awaiting field team inspection'
-      },
-      createdAt: '2024-01-24T14:00:00Z',
-      updatedAt: '2024-01-24T14:00:00Z',
-      chain: {
-        surveyor: 'John Smith'
-      }
-    },
-    {
-      id: 'job-6',
-      clientName: 'MNO Real Estate',
-      clientInfo: {
-        clientType: 'Real Estate Company',
-        contactNumber: '+256 700 678 901',
-        email: 'sales@mnoreal.ug',
-        address: 'Plot 987, Hoima Road, Kampala'
-      },
-      assetType: 'Residential Property',
-      assetDetails: {
-        location: 'Bukoto, Kampala',
-        size: '2,500 sqm',
-        propertyUse: 'Apartment Complex',
-        previousWorkHistory: ['Construction Monitoring 2023'],
-        neighborhood: ['Bukoto', 'Ntinda', 'Kisaasi']
-      },
-      valuationRequirements: {
-        purpose: 'Market Valuation',
-        value: 850000000,
-        currency: 'UGX',
-        deadline: '2024-03-10'
-      },
-      bankInfo: {
-        bankName: 'MNO Bank',
-        branch: 'Bukoto Branch',
-        contactPerson: 'Patience Nalubega',
-        contactNumber: '+256 700 678 901'
-      },
-      status: 'complete',
-      qaChecklist: {
-        completed: true,
-        items: ['Field Report Review', 'Document Verification', 'Value Assessment', 'QA Approval', 'MD Approval'],
-        notes: 'Project completed successfully'
-      },
-      createdAt: '2024-01-05T08:00:00Z',
-      updatedAt: '2024-01-30T17:00:00Z',
-      fieldReportData: {
-        inspectionDate: '2024-01-15',
-        siteConditions: 'Excellent - Newly constructed apartment complex with modern amenities',
-        measurements: 'Length: 80m, Width: 31.25m, Height: 25m',
-        photos: ['photo1.jpg', 'photo2.jpg', 'photo3.jpg', 'photo4.jpg'],
-        notes: 'High-quality residential development with excellent rental potential. Construction quality is superior.',
-        documents: {
-          orthophoto: 'orthophoto_job6.pdf',
-          topographic: 'topographic_job6.pdf',
-          areaSchedule: 'area_schedule_job6.pdf',
-          titleSearch: 'title_search_job6.pdf',
-          occupancyPermit: 'occupancy_permit_job6.pdf',
-          additionalDocs: ['construction_certificate_job6.pdf', 'architectural_plans_job6.pdf', 'final_inspection_job6.pdf']
-        }
-      },
-      adminReviewed: true,
-      adminReviewDate: '2024-01-16T09:00:00Z',
-      adminReviewNotes: 'Field report comprehensive and well documented. Ready for QA review.',
-      qaNotes: 'All documents verified. Valuation methodology sound. Recommended for approval.',
-      mdApproval: true,
-      paymentReceived: true,
-      chain: {
-        surveyor: 'John Smith',
-        qa: 'Sarah Johnson',
-        md: 'Dr. Michael Brown',
-        accounts: 'Lisa Wilson'
-      }
+    } catch (err) {
+      console.error('Error fetching jobs:', err);
+      setError('Failed to fetch jobs');
+    } finally {
+      setLoading(false);
     }
-  ]);
-
-  const addJob = (jobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newJob: Job = {
-      ...jobData,
-      id: `job-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setJobs(prev => [...prev, newJob]);
   };
 
-  const updateJob = (id: string, updates: Partial<Job>) => {
-    setJobs(prev => prev.map(job => 
-      job.id === id 
-        ? { ...job, ...updates, updatedAt: new Date().toISOString() }
-        : job
-    ));
+  // Load jobs on component mount
+  useEffect(() => {
+    fetchJobs();
+    // lightweight polling so dashboard Recent Activity reflects DB in near real-time
+    const interval = setInterval(fetchJobs, 8000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const addJob = async (jobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const response = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jobData),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Transform the response to match Job interface
+        const newJob: Job = {
+          ...data.data,
+          id: data.data.id.toString(),
+          clientInfo: data.data.client_info || {},
+          assetDetails: data.data.asset_details || {},
+          valuationRequirements: data.data.valuation_requirements || {},
+          bankInfo: data.data.bank_info || {},
+          qaChecklist: data.data.qa_checklist || { completed: false, items: [], notes: "" },
+          fieldReportData: data.data.field_report_data,
+          adminReviewed: data.data.admin_reviewed || false,
+          adminReviewDate: data.data.admin_review_date,
+          adminReviewNotes: data.data.admin_review_notes,
+          qaNotes: data.data.qa_notes,
+          mdApproval: data.data.md_approval,
+          paymentReceived: data.data.payment_received || false,
+          revocationReason: data.data.revocation_reason,
+          chain: data.data.chain || {},
+          createdAt: data.data.created_at,
+          updatedAt: data.data.updated_at
+        };
+        
+        setJobs(prev => [...prev, newJob]);
+      } else {
+        throw new Error(data.error || 'Failed to add job');
+      }
+    } catch (err) {
+      console.error('Error adding job:', err);
+      throw err;
+    }
   };
 
-  const deleteJob = (id: string) => {
-    setJobs(prev => prev.filter(job => job.id !== id));
+  const updateJob = async (id: string, updates: Partial<Job>) => {
+    try {
+      const response = await fetch(`/api/jobs/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Transform the response to match Job interface
+        const updatedJob: Job = {
+          ...data.data,
+          id: data.data.id.toString(),
+          clientInfo: data.data.client_info || {},
+          assetDetails: data.data.asset_details || {},
+          valuationRequirements: data.data.valuation_requirements || {},
+          bankInfo: data.data.bank_info || {},
+          qaChecklist: data.data.qa_checklist || { completed: false, items: [], notes: "" },
+          fieldReportData: data.data.field_report_data,
+          adminReviewed: data.data.admin_reviewed || false,
+          adminReviewDate: data.data.admin_review_date,
+          adminReviewNotes: data.data.admin_review_notes,
+          qaNotes: data.data.qa_notes,
+          mdApproval: data.data.md_approval,
+          paymentReceived: data.data.payment_received || false,
+          revocationReason: data.data.revocation_reason,
+          chain: data.data.chain || {},
+          createdAt: data.data.created_at,
+          updatedAt: data.data.updated_at
+        };
+        
+        setJobs(prev => prev.map(job => 
+          job.id === id ? updatedJob : job
+        ));
+      } else {
+        throw new Error(data.error || 'Failed to update job');
+      }
+    } catch (err) {
+      console.error('Error updating job:', err);
+      throw err;
+    }
+  };
+
+  const deleteJob = async (id: string) => {
+    try {
+      const response = await fetch(`/api/jobs/${id}`, {
+        method: 'DELETE',
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setJobs(prev => prev.filter(job => job.id !== id));
+      } else {
+        throw new Error(data.error || 'Failed to delete job');
+      }
+    } catch (err) {
+      console.error('Error deleting job:', err);
+      throw err;
+    }
   };
 
   const getJobsByStatus = (status: string) => {
@@ -467,6 +301,8 @@ export const JobsProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <JobsContext.Provider value={{
       jobs,
+      loading,
+      error,
       addJob,
       updateJob,
       deleteJob,
@@ -476,6 +312,7 @@ export const JobsProvider: React.FC<{ children: React.ReactNode }> = ({ children
       getJobsByProperty,
       getBankStatistics,
       getAllBanks,
+      refreshJobs: fetchJobs,
     }}>
       {children}
     </JobsContext.Provider>

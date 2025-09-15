@@ -41,7 +41,6 @@ import {
   Schedule as ScheduleIcon,
   Settings as SettingsIcon,
   Analytics as AnalyticsIcon,
-  People as PeopleIcon,
   Payment as PaymentIcon,
   Warning as WarningIcon,
   Info as InfoIcon,
@@ -59,11 +58,12 @@ import { useUser } from '../../components/UserContext';
 import { useJobs } from '../../components/JobsContext';
 import { useNotifications, Notification } from '../../components/NotificationsContext';
 import { useRouter } from 'next/navigation';
+import Logo from '../../components/Logo';
 
 export default function Dashboard() {
   const { user, logout } = useUser();
   const { jobs } = useJobs();
-  const { notifications, markAsRead, getUnreadCount, deleteNotification } = useNotifications();
+  const { notifications, unreadCount, markAsRead, removeNotification } = useNotifications();
   const router = useRouter();
 
 
@@ -72,6 +72,8 @@ export default function Dashboard() {
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
   const [notificationType, setNotificationType] = useState<'success' | 'error' | 'info'>('info');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
 
   // Debug logging
   useEffect(() => {
@@ -92,16 +94,16 @@ export default function Dashboard() {
 
 
 
-  const handleNotificationClick = (notificationId: string) => {
+  const handleNotificationClick = (notificationId: number) => {
     if (user) {
-      markAsRead(user.role, notificationId);
+      markAsRead(notificationId);
       setNotificationDrawerOpen(false);
     }
   };
 
-  const handleDeleteNotification = (notificationId: string) => {
+  const handleDeleteNotification = (notificationId: number) => {
     if (user) {
-      deleteNotification(user.role, notificationId);
+      removeNotification(notificationId);
       setShowNotification(true);
       setNotificationMessage('Notification deleted successfully');
       setNotificationType('success');
@@ -328,20 +330,12 @@ export default function Dashboard() {
     if (user.role === 'admin') {
       return [
         {
-          title: 'Add New Client',
-          description: 'Create new client and job assignments',
+          title: 'Client Onboarding',
+          description: 'Create new clients with 5 report templates',
           icon: AddIcon,
           color: '#1976d2',
-          action: () => router.push('/admin/add-client'),
+          action: () => router.push('/admin/client-onboarding'),
           badge: 'New'
-        },
-        {
-          title: 'Review Reports',
-          description: 'Review and approve field reports',
-          icon: ReviewIcon,
-          color: '#ff9800',
-          action: () => router.push('/admin/report-review'),
-          badge: pendingQA > 0 ? `${pendingQA}` : undefined
         },
         {
           title: 'Client Database',
@@ -352,28 +346,20 @@ export default function Dashboard() {
           badge: 'View All'
         },
         {
-          title: 'Analytics Dashboard',
-          description: 'Performance metrics and insights',
-          icon: AnalyticsIcon,
+          title: 'Report Management',
+          description: 'Track report progress and status',
+          icon: AssessmentIcon,
+          color: '#ff9800',
+          action: () => router.push('/admin/report-management'),
+          badge: pendingQA > 0 ? `${pendingQA}` : undefined
+        },
+        {
+          title: 'Job Assignments',
+          description: 'Assign jobs to field workers',
+          icon: AssignmentIcon,
           color: '#9c27b0',
-          action: () => router.push('/admin/analytics'),
-          badge: 'Pro'
-        },
-        {
-          title: 'Team Management',
-          description: 'Manage field teams and assignments',
-          icon: PeopleIcon,
-          color: '#e91e63',
-          action: () => router.push('/admin/team-management'),
-          badge: 'New'
-        },
-        {
-          title: 'System Settings',
-          description: 'Configure system parameters',
-          icon: SettingsIcon,
-          color: '#607d8b',
-          action: () => router.push('/admin/settings'),
-          badge: 'Admin'
+          action: () => router.push('/admin/job-assignments'),
+          badge: 'Active'
         }
       ];
     }
@@ -465,8 +451,7 @@ export default function Dashboard() {
 
   const stats = getEnhancedStats();
   const quickActions = getEnhancedQuickActions();
-  const userNotifications = notifications[user?.role] || [];
-  const unreadCount = getUnreadCount(user?.role);
+  const userNotifications = notifications;
 
   return (
     <Box sx={{ 
@@ -491,7 +476,7 @@ export default function Dashboard() {
       }
     }}>
       {/* Enhanced Header with Professional Design */}
-      <AppBar position="static" elevation={0} sx={{ 
+      <AppBar position="sticky" elevation={0} sx={{ 
         background: 'linear-gradient(135deg, #1a237e 0%, #3949ab 100%)',
         backdropFilter: 'blur(10px)',
         borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
@@ -500,30 +485,22 @@ export default function Dashboard() {
         <Toolbar>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             {/* Enhanced Logo */}
-            <Box sx={{ 
-              width: 50, 
-              height: 50, 
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-            }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a237e' }}>
-                SP
-              </Typography>
-            </Box>
+            <Logo size="medium" showText={true} color="light" />
             
-            <Typography variant="h6" sx={{ fontWeight: 600, color: 'white' }}>
-              Stanfield Property Partners
-            </Typography>
           </Box>
 
           <Box sx={{ flexGrow: 1 }} />
 
           {/* Navigation */}
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setMobileActionsOpen(true)}
+              sx={{ display: { xs: 'inline-flex', lg: 'none' }, borderColor: 'rgba(255,255,255,0.3)', color: 'white' }}
+            >
+              Actions
+            </Button>
             <Chip 
               label={getRoleDisplayName(user?.role || 'guest')} 
               sx={{ 
@@ -608,13 +585,65 @@ export default function Dashboard() {
 
 
 
-      {/* Main Content */}
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      {/* Main Content with Actions Sidebar */}
+      <Container maxWidth="xl" sx={{ py: 3, px: { xs: 2, sm: 3 } }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '260px 1fr' }, gap: { xs: 2, md: 3 } }}>
+          {/* Actions Sidebar */}
+          <Box sx={{ display: { xs: sidebarOpen ? 'block' : 'none', lg: 'block' } }}>
+            <Card sx={{ mb: 3 }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                  Actions
+                </Typography>
+                <List>
+                  {quickActions.map((action, idx) => (
+                    <ListItem key={idx} onClick={action.action} sx={{ cursor: 'pointer', borderRadius: 1, mb: 0.5, '&:hover': { bgcolor: `${action.color}10` } }}>
+                      <ListItemIcon>
+                        <Box sx={{ width: 36, height: 36, borderRadius: '50%', bgcolor: `${action.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <action.icon sx={{ fontSize: 20, color: action.color }} />
+                        </Box>
+                      </ListItemIcon>
+                      <ListItemText primary={action.title} secondary={action.description} />
+                      {action.badge && (
+                        <Chip label={action.badge} size="small" sx={{ bgcolor: action.color, color: 'white' }} />
+                      )}
+                    </ListItem>
+                  ))}
+                </List>
+              </CardContent>
+            </Card>
+
+            {/* Profile Card */}
+            <Card>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                  Profile
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                  <Box sx={{ width: 48, height: 48, borderRadius: '50%', bgcolor: '#e3f2fd', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                    {user.name?.charAt(0) || 'A'}
+                  </Box>
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{user.name || 'Administrator'}</Typography>
+                    <Typography variant="caption" color="text.secondary">{user.email || 'admin@stanfield.com'}</Typography>
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  <Button variant="outlined" size="small" startIcon={<SettingsIcon />} onClick={() => router.push('/profile')}>Change Credentials</Button>
+                  <Button variant="contained" size="small" startIcon={<LogoutIcon />} color="error" onClick={handleLogout}>Sign out</Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </Box>
+
+          {/* Main Column */}
+          <Box>
+        
         {/* Enhanced Welcome Section */}
-        <Box sx={{ textAlign: 'center', mb: 6 }}>
-          <Typography variant="h3" sx={{ 
+        <Box sx={{ textAlign: 'center', mb: { xs: 3, md: 5 } }}>
+          <Typography variant="h4" sx={{ 
             fontWeight: 700, 
-            mb: 2, 
+            mb: 1.5, 
             background: 'linear-gradient(135deg, #1a237e 0%, #3949ab 100%)',
             backgroundClip: 'text',
             WebkitBackgroundClip: 'text',
@@ -622,17 +651,17 @@ export default function Dashboard() {
           }}>
             Welcome back, {getRoleDisplayName(user.role)}!
           </Typography>
-          <Typography variant="h6" sx={{ color: 'text.secondary', mb: 4 }}>
+          <Typography variant="body1" sx={{ color: 'text.secondary', mb: { xs: 2, md: 3 } }}>
             Manage your valuation workflow efficiently with our professional tools
           </Typography>
           
           {/* Quick Status Overview */}
           <Box sx={{ 
             display: 'flex', 
-            gap: 2, 
+            gap: 1.5, 
             justifyContent: 'center', 
             flexWrap: 'wrap',
-            mt: 3
+            mt: { xs: 1, md: 2 }
           }}>
             <Chip 
               icon={<TrendingIcon />} 
@@ -655,55 +684,55 @@ export default function Dashboard() {
           </Box>
         </Box>
 
-        {/* Enhanced Statistics Cards */}
-        <Box sx={{ mb: 6 }}>
+        {/* Performance Overview (live from DB) */}
+        <Box sx={{ mb: { xs: 3, md: 5 } }}>
           <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, color: '#1a237e' }}>
             Performance Overview
           </Typography>
           
           <Box sx={{ 
             display: 'grid', 
-            gap: 3,
+            gap: { xs: 1.25, md: 2.5 },
             gridTemplateColumns: {
               xs: '1fr',
               sm: 'repeat(2, 1fr)',
               md: 'repeat(3, 1fr)',
               lg: 'repeat(4, 1fr)',
-              xl: 'repeat(7, 1fr)'
+              xl: 'repeat(6, 1fr)'
             }
           }}>
             {stats.map((stat, index) => (
               <Card key={index} sx={{ 
                 height: '100%', 
                 background: 'rgba(255, 255, 255, 0.95)',
-                border: `2px solid ${stat.color}30`,
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                border: `1px solid ${stat.color}30`,
+                boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: `0 8px 25px ${stat.color}40`
+                  transform: 'translateY(-3px)',
+                  boxShadow: `0 6px 18px ${stat.color}35`
                 }
               }}>
-                <CardContent sx={{ textAlign: 'center', p: 3 }}>
+                <CardContent sx={{ textAlign: 'center', p: { xs: 1.25, md: 2.5 } }}>
                   <Box sx={{ 
-                    width: 60, 
-                    height: 60, 
+                    width: 36, 
+                    height: 36, 
                     borderRadius: '50%', 
                     bgcolor: `${stat.color}20`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     mx: 'auto',
-                    mb: 2
+                    mb: 0.8
                   }}>
-                    <stat.icon sx={{ fontSize: 30, color: stat.color }} />
+                    <stat.icon sx={{ fontSize: 18, color: stat.color }} />
                   </Box>
                   
-                  <Typography variant="h4" sx={{ fontWeight: 700, mb: 1, color: '#1f2937' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.25, color: '#1f2937' }}>
                     {stat.value}
                   </Typography>
                   
-                  <Typography variant="body2" sx={{ color: '#374151', mb: 1, fontWeight: 500 }}>
+                  <Typography variant="caption" sx={{ color: '#374151', mb: 0.25, fontWeight: 600 }}>
                     {stat.label}
                   </Typography>
                   
@@ -716,7 +745,7 @@ export default function Dashboard() {
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center', 
-                    mt: 1,
+                    mt: 0.75,
                     gap: 0.5
                   }}>
                     {stat.trendUp ? (
@@ -739,93 +768,9 @@ export default function Dashboard() {
 
 
 
-        {/* Enhanced Quick Actions */}
-        <Box sx={{ mb: 6 }}>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, color: '#1a237e' }}>
-            Quick Actions & Tools
-          </Typography>
-          
-          <Box sx={{ 
-            display: 'grid', 
-            gap: 3,
-            gridTemplateColumns: {
-              xs: '1fr',
-              sm: 'repeat(2, 1fr)',
-              md: 'repeat(3, 1fr)',
-              lg: 'repeat(3, 1fr)'
-            }
-          }}>
-            {quickActions.map((action, index) => (
-              <Card 
-                key={index}
-                sx={{ 
-                  height: '100%', 
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
-                  }
-                }}
-                onClick={action.action}
-              >
-                {/* Badge */}
-                {action.badge && (
-                  <Box sx={{
-                    position: 'absolute',
-                    top: 12,
-                    right: 12,
-                    zIndex: 1
-                  }}>
-                    <Chip 
-                      label={action.badge} 
-                      size="small" 
-                      color="primary"
-                      sx={{ 
-                        bgcolor: action.color,
-                        color: 'white',
-                        fontWeight: 600,
-                        fontSize: '0.7rem'
-                      }}
-                    />
-                  </Box>
-                )}
-                
-                <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                  <Box sx={{ 
-                    width: 80, 
-                    height: 80, 
-                    borderRadius: '50%', 
-                    bgcolor: `${action.color}20`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mx: 'auto',
-                    mb: 3,
-                    transition: 'all 0.3s ease'
-                  }}>
-                    <action.icon sx={{ fontSize: 40, color: action.color }} />
-                  </Box>
-                  
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#1a237e' }}>
-                    {action.title}
-                  </Typography>
-                  
-                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                    {action.description}
-                  </Typography>
-                </CardContent>
-              </Card>
-            ))}
-          </Box>
-        </Box>
-
-
-
+        {/* Recent Activity */}
         {/* Recent Activity with Enhanced Data */}
-        <Box sx={{ mb: 6 }}>
+        <Box sx={{ mb: { xs: 3, md: 5 } }}>
           <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, color: '#1a237e' }}>
             Recent Activity & Updates
           </Typography>
@@ -937,7 +882,7 @@ export default function Dashboard() {
                             {notification.message}
                           </Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                            {new Date(notification.timestamp).toLocaleDateString()}
+                            {new Date(notification.created_at).toLocaleDateString()}
                           </Typography>
                         </Box>
                         
@@ -1009,7 +954,36 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </Box>
+          </Box>
+        </Box>
       </Container>
+
+      {/* Mobile Actions Drawer */}
+      <Drawer
+        anchor="left"
+        open={mobileActionsOpen}
+        onClose={() => setMobileActionsOpen(false)}
+        PaperProps={{ sx: { width: 300 } }}
+      >
+        <Box sx={{ p: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Actions</Typography>
+          <List>
+            {quickActions.map((action, idx) => (
+              <ListItem key={idx} onClick={() => { setMobileActionsOpen(false); action.action(); }} sx={{ cursor: 'pointer', borderRadius: 1, mb: 0.5, '&:hover': { bgcolor: `${action.color}10` } }}>
+                <ListItemIcon>
+                  <Box sx={{ width: 36, height: 36, borderRadius: '50%', bgcolor: `${action.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <action.icon sx={{ fontSize: 20, color: action.color }} />
+                  </Box>
+                </ListItemIcon>
+                <ListItemText primary={action.title} secondary={action.description} />
+                {action.badge && (
+                  <Chip label={action.badge} size="small" sx={{ bgcolor: action.color, color: 'white' }} />
+                )}
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      </Drawer>
 
       {/* Notification Drawer */}
       <Drawer
@@ -1072,7 +1046,7 @@ export default function Dashboard() {
                           {notification.message}
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                          {new Date(notification.timestamp).toLocaleString()}
+                          {new Date(notification.created_at).toLocaleString()}
                         </Typography>
                       </Box>
                     }

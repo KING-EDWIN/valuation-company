@@ -1,0 +1,34 @@
+{
+  "project_details": {
+    "report_title": "",
+    "report_reference_number": "",
+    "report_date": "",
+    "assignment_type": "",
+    "assignment_purpose": "",
+    "report_recipient": {
+      "firm_name": "",
+      "department": "",
+      "recipient_role": "",
+      "location": ""
+    }
+  },
+  "client_details": {
+    "primary_client": "",
+    "client_contact": {
+      "name": "",
+      "role": "",
+      "contact_number": ""
+    }
+  },
+  "project_background": {
+    "client_instructions_summary": "",
+    "fieldwork_dates": {
+      "start_date": "",
+      "end_date": ""
+    },
+    "project_scope": ""
+  },
+  "related_documents": {
+    "documents_mentioned": []
+  }
+}

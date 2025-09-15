@@ -1,0 +1,35 @@
+{
+  "optional_field_toggles": {
+    "has_encroachments": false,
+    "has_squatters": false,
+    "has_graveyard": false,
+    "has_developments": false,
+    "has_crops": false
+  },
+  "conditional_details": {
+    "encroachments": {
+      "description": ""
+    },
+    "occupancy": {
+      "squatters_present": false
+    },
+    "graveyard_details": {
+      "exists": false
+    },
+    "developments_on_plot": {
+      "description": ""
+    },
+    "property_features": {
+      "crops_grown": ""
+    }
+  },
+  "property_location_and_access_optional": {
+    "distance_from_kampala_cdb_km": null,
+    "distance_from_mityana_town_centre_km": null
+  },
+  "supporting_documents_availability": {
+    "aerial_view_available": false,
+    "location_map_available": false,
+    "pictorial_evidence_available": false
+  }
+}

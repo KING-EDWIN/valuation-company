@@ -4,6 +4,7 @@ import { Box, Typography, Paper, Button, Alert, Stack, Card, CardContent, Avatar
 import { useJobs } from "../../components/JobsContext";
 import { useNotifications } from "../../components/NotificationsContext";
 import { useRouter } from "next/navigation";
+import Logo from '../../components/Logo';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import BusinessIcon from '@mui/icons-material/Business';
@@ -82,51 +83,7 @@ export default function SystemManagerDashboard() {
                   overflow: 'hidden',
                   bgcolor: 'rgba(255,255,255,0.2)'
                 }}>
-                  {/* Stanfield Logo - CSS Generated */}
-                  <Box sx={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    position: 'relative'
-                  }}>
-                    {/* Red geometric shape - upper left */}
-                    <Box sx={{
-                      position: 'absolute',
-                      top: '10%',
-                      left: '10%',
-                      width: '40%',
-                      height: '40%',
-                      backgroundColor: '#e53935',
-                      clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)',
-                      zIndex: 2
-                    }} />
-                    
-                    {/* Dark gray geometric shape - lower right */}
-                    <Box sx={{
-                      position: 'absolute',
-                      bottom: '10%',
-                      right: '10%',
-                      width: '40%',
-                      height: '40%',
-                      backgroundColor: '#424242',
-                      clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%)',
-                      zIndex: 2
-                    }} />
-                    
-                    {/* Diagonal line connecting the shapes */}
-                    <Box sx={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      width: '80%',
-                      height: '3px',
-                      backgroundColor: '#1976d2',
-                      transform: 'translate(-50%, -50%) rotate(45deg)',
-                      zIndex: 1
-                    }} />
-                  </Box>
+                  <Logo size="medium" showText={true} color="light" />
                   <Box sx={{ 
                     width: '100%', 
                     height: '100%', 
@@ -142,9 +99,6 @@ export default function SystemManagerDashboard() {
                     SP
                   </Box>
                 </Box>
-                <Typography variant="h5" fontWeight={600} color="white">
-                  Stanfield Property Partners
-                </Typography>
               </Box>
               
               <BusinessIcon sx={{ fontSize: 60, mb: 2 }} />

@@ -15,6 +15,7 @@ import { useJobs, Job } from "../../components/JobsContext";
 import { useUser } from "../../components/UserContext";
 import { useNotifications } from "../../components/NotificationsContext";
 import { useRouter } from "next/navigation";
+import Logo from "../../components/Logo";
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
@@ -30,6 +31,10 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import GavelIcon from '@mui/icons-material/Gavel';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import LocationCityIcon from '@mui/icons-material/LocationCity';
+import AddIcon from '@mui/icons-material/Add';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 
 interface TabPanelProps {
@@ -64,6 +69,9 @@ export default function MDDashboard() {
   const [propertyHistoryDialogOpen, setPropertyHistoryDialogOpen] = useState(false);
   const [bankHistoryDialogOpen, setBankHistoryDialogOpen] = useState(false);
   const [selectedBank, setSelectedBank] = useState<string>("");
+  const [users, setUsers] = useState<any[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [userError, setUserError] = useState('');
 
   // Filter jobs for MD
   const mdJobs = jobs.filter(job => job.status === "pending MD approval");
@@ -72,6 +80,65 @@ export default function MDDashboard() {
 
   // Get all banks
   const allBanks = getAllBanks();
+
+  // User management functions
+  const fetchUsers = async () => {
+    try {
+      setLoadingUsers(true);
+      setUserError('');
+      const response = await fetch('/api/users');
+      const data = await response.json();
+      
+      if (data.success) {
+        setUsers(data.users);
+      } else {
+        setUserError(data.error || 'Failed to fetch users');
+      }
+    } catch (err) {
+      setUserError('Failed to fetch users');
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const approveUser = async (userId: number) => {
+    try {
+      const response = await fetch(`/api/users/${userId}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        fetchUsers(); // Refresh users list
+      } else {
+        setUserError(data.error || 'Failed to approve user');
+      }
+    } catch (err) {
+      setUserError('Failed to approve user');
+    }
+  };
+
+  const deleteUser = async (userId: number) => {
+    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'DELETE'
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        fetchUsers(); // Refresh users list
+      } else {
+        setUserError(data.error || 'Failed to delete user');
+      }
+    } catch (err) {
+      setUserError('Failed to delete user');
+    }
+  };
 
   const handleMDApproval = (job: Job) => {
     setSelectedJob(job);
@@ -158,7 +225,7 @@ export default function MDDashboard() {
           </Button>
           
           {/* Logo and Company Name */}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
             <Box sx={{ 
               width: 50, 
               height: 50, 
@@ -169,51 +236,7 @@ export default function MDDashboard() {
               overflow: 'hidden',
               bgcolor: 'rgba(255,255,255,0.2)'
             }}>
-              {/* Stanfield Logo - CSS Generated */}
-              <Box sx={{ 
-                width: '100%', 
-                height: '100%', 
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative'
-              }}>
-                {/* Red geometric shape - upper left */}
-                <Box sx={{
-                  position: 'absolute',
-                  top: '10%',
-                  left: '10%',
-                  width: '40%',
-                  height: '40%',
-                  backgroundColor: '#e53935',
-                  clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)',
-                  zIndex: 2
-                }} />
-                
-                {/* Dark gray geometric shape - lower right */}
-                <Box sx={{
-                  position: 'absolute',
-                  bottom: '10%',
-                  right: '10%',
-                  width: '40%',
-                  height: '40%',
-                  backgroundColor: '#424242',
-                  clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%)',
-                  zIndex: 2
-                }} />
-                
-                {/* Diagonal line connecting the shapes */}
-                <Box sx={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  width: '80%',
-                  height: '3px',
-                  backgroundColor: '#1976d2',
-                  transform: 'translate(-50%, -50%) rotate(45deg)',
-                  zIndex: 1
-                }} />
-              </Box>
+              <Logo size="medium" showText={true} color="light" />
               <Box sx={{ 
                 width: '100%', 
                 height: '100%', 
@@ -229,9 +252,15 @@ export default function MDDashboard() {
                 SP
               </Box>
             </Box>
-            <Typography variant="h5" fontWeight={600} color="white">
-              Stanfield Property Partners
-            </Typography>
+            <Box sx={{ flexGrow: 1 }} />
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => router.push('/admin/client-onboarding')}
+              sx={{ bgcolor: 'white', color: '#e53935', '&:hover': { bgcolor: '#fff5f5' } }}
+            >
+              Add New Client
+            </Button>
           </Box>
           
           <Typography variant="h4" fontWeight={700} mb={2}>
@@ -483,6 +512,120 @@ export default function MDDashboard() {
           </DialogContent>
         </Dialog>
 
+        {/* Client Management Section */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" mb={3} fontWeight={600} color="text.primary">
+            Client Management & Strategic Oversight
+          </Typography>
+          
+          <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+            <Button
+              variant="outlined"
+              startIcon={<BusinessIcon />}
+              onClick={() => router.push('/admin/client-database')}
+              sx={{ borderColor: '#e53935', color: '#e53935' }}
+            >
+              View Client Database
+            </Button>
+          </Box>
+
+          <Alert severity="info" sx={{ mb: 3 }}>
+            <Typography variant="h6">Strategic Client Management</Typography>
+            <Typography variant="body2">
+              As Managing Director, you have full access to client onboarding and database management. 
+              Monitor client relationships, track performance metrics, and make strategic decisions based on comprehensive client data.
+            </Typography>
+          </Alert>
+
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 3 }}>
+            <Card sx={{ p: 3, border: '1px solid #e0e0e0' }}>
+              <Typography variant="h6" fontWeight={600} mb={2} color="primary">
+                Client Portfolio Overview
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2">Total Clients:</Typography>
+                <Typography variant="body2" fontWeight={600}>{jobs.length}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2">Active Projects:</Typography>
+                <Typography variant="body2" fontWeight={600}>{jobs.filter(j => j.status !== 'complete').length}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2">Completed Projects:</Typography>
+                <Typography variant="body2" fontWeight={600}>{jobs.filter(j => j.status === 'complete').length}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2">Success Rate:</Typography>
+                <Typography variant="body2" fontWeight={600}>
+                  {jobs.length > 0 ? Math.round((jobs.filter(j => j.status === 'complete').length / jobs.length) * 100) : 0}%
+                </Typography>
+              </Box>
+            </Card>
+
+            <Card sx={{ p: 3, border: '1px solid #e0e0e0' }}>
+              <Typography variant="h6" fontWeight={600} mb={2} color="primary">
+                Revenue Overview
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2">Total Value:</Typography>
+                <Typography variant="body2" fontWeight={600}>
+                  UGX {jobs.reduce((sum, job) => sum + (job.valuationRequirements?.value || 0), 0).toLocaleString()}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2">Avg. Project Value:</Typography>
+                <Typography variant="body2" fontWeight={600}>
+                  UGX {jobs.length > 0 ? Math.round(jobs.reduce((sum, job) => sum + (job.valuationRequirements?.value || 0), 0) / jobs.length).toLocaleString() : 0}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2">High Value Projects:</Typography>
+                <Typography variant="body2" fontWeight={600}>
+                  {jobs.filter(j => (j.valuationRequirements?.value || 0) > 500000000).length}
+                </Typography>
+              </Box>
+            </Card>
+
+            <Card sx={{ p: 3, border: '1px solid #e0e0e0' }}>
+              <Typography variant="h6" fontWeight={600} mb={2} color="primary">
+                Strategic Insights
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2">Top Bank Partner:</Typography>
+                <Typography variant="body2" fontWeight={600}>
+                  {(() => {
+                    const bankStats = jobs.reduce((acc, job) => {
+                      acc[job.bankInfo.bankName] = (acc[job.bankInfo.bankName] || 0) + 1;
+                      return acc;
+                    }, {} as Record<string, number>);
+                    const topBank = Object.entries(bankStats).sort(([,a], [,b]) => b - a)[0];
+                    return topBank ? topBank[0] : 'N/A';
+                  })()}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2">Most Common Asset:</Typography>
+                <Typography variant="body2" fontWeight={600}>
+                  {(() => {
+                    const assetStats = jobs.reduce((acc, job) => {
+                      acc[job.assetType] = (acc[job.assetType] || 0) + 1;
+                      return acc;
+                    }, {} as Record<string, number>);
+                    const topAsset = Object.entries(assetStats).sort(([,a], [,b]) => b - a)[0];
+                    return topAsset ? topAsset[0] : 'N/A';
+                  })()}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2">Active Locations:</Typography>
+                <Typography variant="body2" fontWeight={600}>
+                  {new Set(jobs.map(j => j.assetDetails.location)).size}
+                </Typography>
+              </Box>
+            </Card>
+          </Box>
+        </Box>
+
         {/* Business Intelligence Section */}
         <BusinessIntelligenceTabs />
       </Box>
@@ -725,6 +868,28 @@ function BankHistoryView({ bankName }: { bankName: string }) {
 function BusinessIntelligenceTabs() {
   const [tabValue, setTabValue] = useState(0);
   const { jobs } = useJobs();
+  // Local user management state for the "User Management" tab
+  const [users, setUsers] = useState<any[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [userError, setUserError] = useState('');
+
+  const fetchUsers = async () => {
+    try {
+      setLoadingUsers(true);
+      setUserError('');
+      const response = await fetch('/api/users');
+      const data = await response.json();
+      if (data.success) {
+        setUsers(data.users);
+      } else {
+        setUserError(data.error || 'Failed to fetch users');
+      }
+    } catch (err) {
+      setUserError('Failed to fetch users');
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
 
   // Mock data for business intelligence
   const completedJobs = jobs.filter(job => job.status === "pending payment").length;
@@ -758,6 +923,7 @@ function BusinessIntelligenceTabs() {
           <Tab label="Location Performance" icon={<LocationCityIcon />} />
           <Tab label="Quality Metrics" icon={<AssessmentIcon />} />
           <Tab label="Financial Overview" icon={<AttachMoneyIcon />} />
+          <Tab label="User Management" icon={<PersonAddIcon />} />
         </Tabs>
       </Box>
 
@@ -1093,6 +1259,112 @@ function BusinessIntelligenceTabs() {
             {financialOverview.profitMargins[11] > 25 ? ' Excellent profitability!' : ' Consider reviewing cost structures for improved margins.'}
           </Typography>
         </Alert>
+      </TabPanel>
+
+      {/* User Management Tab */}
+      <TabPanel value={tabValue} index={6}>
+        <Typography variant="h5" fontWeight={600} mb={3}>
+          User Management
+        </Typography>
+        
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="body1" color="text.secondary">
+            Manage user accounts, approve new registrations, and control access
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<PersonAddIcon />}
+            onClick={fetchUsers}
+            disabled={loadingUsers}
+          >
+            Refresh Users
+          </Button>
+        </Box>
+
+        {userError && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {userError}
+          </Alert>
+        )}
+
+        {loadingUsers ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Role</TableCell>
+                  <TableCell>Department</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Created</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Avatar sx={{ width: 32, height: 32, bgcolor: user.approved ? '#4caf50' : '#ff9800' }}>
+                          {user.name.charAt(0)}
+                        </Avatar>
+                        {user.name}
+                      </Box>
+                    </TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={user.role} 
+                        size="small" 
+                        color={user.role === 'admin' ? 'primary' : user.role === 'md' ? 'error' : 'default'}
+                      />
+                    </TableCell>
+                    <TableCell>{user.department || 'N/A'}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={user.approved ? 'Approved' : 'Pending'} 
+                        size="small" 
+                        color={user.approved ? 'success' : 'warning'}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        {!user.approved && (
+                          <Button
+                            size="small"
+                            startIcon={<CheckCircleIcon />}
+                            onClick={() => approveUser(user.id)}
+                            color="success"
+                            variant="outlined"
+                          >
+                            Approve
+                          </Button>
+                        )}
+                        <Button
+                          size="small"
+                          startIcon={<PersonRemoveIcon />}
+                          onClick={() => deleteUser(user.id)}
+                          color="error"
+                          variant="outlined"
+                        >
+                          Delete
+                        </Button>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </TabPanel>
     </Card>
   );
