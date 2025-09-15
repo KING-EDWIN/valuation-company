@@ -174,9 +174,9 @@ export default function ClientAcquisitionPage() {
     }, 3000);
   };
 
-  const total = jobs.length;
-  const pending = jobs.filter(j => j.status !== "complete").length;
-  const completed = jobs.filter(j => j.status === "complete").length;
+  const total = jobs?.length || 0;
+  const pending = jobs?.filter(j => j.status !== "complete").length || 0;
+  const completed = jobs?.filter(j => j.status === "complete").length || 0;
 
   return (
     <Box sx={{ 

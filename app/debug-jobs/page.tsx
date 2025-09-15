@@ -52,7 +52,7 @@ export default function DebugJobs() {
       )}
 
       <Typography variant="h6" gutterBottom>
-        Jobs Count: {jobs.length}
+        Jobs Count: {jobs?.length || 0}
       </Typography>
 
       {jobs.map((job: any) => (

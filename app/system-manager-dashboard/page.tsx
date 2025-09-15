@@ -17,10 +17,10 @@ export default function SystemManagerDashboard() {
 
   useEffect(() => { clearAllNotifications("system_manager"); }, [clearAllNotifications]);
 
-  const totalJobs = jobs.length;
-  const pendingJobs = jobs.filter(j => j.status !== "complete").length;
-  const completedJobs = jobs.filter(j => j.status === "complete").length;
-  const recentJobs = jobs.slice(-3); // Show last 3 jobs
+  const totalJobs = jobs?.length || 0;
+  const pendingJobs = jobs?.filter(j => j.status !== "complete").length || 0;
+  const completedJobs = jobs?.filter(j => j.status === "complete").length || 0;
+  const recentJobs = jobs?.slice(-3) || []; // Show last 3 jobs
 
   return (
     <Box sx={{ 

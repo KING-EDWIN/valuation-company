@@ -74,9 +74,9 @@ export default function MDDashboard() {
   const [userError, setUserError] = useState('');
 
   // Filter jobs for MD
-  const mdJobs = jobs.filter(job => job.status === "pending MD approval");
-  const pending = mdJobs.filter(j => j.status === "pending MD approval").length;
-  const completed = jobs.filter(j => j.status === "pending payment").length;
+  const mdJobs = jobs?.filter(job => job.status === "pending MD approval") || [];
+  const pending = mdJobs?.filter(j => j.status === "pending MD approval").length || 0;
+  const completed = jobs?.filter(j => j.status === "pending payment").length || 0;
 
   // Get all banks
   const allBanks = getAllBanks();
@@ -277,7 +277,7 @@ export default function MDDashboard() {
               <CardContent>
               <AssignmentIcon color="primary" />
               <Typography variant="h6">Total MD Jobs</Typography>
-              <Typography variant="h5">{jobs.length}</Typography>
+              <Typography variant="h5">{jobs?.length || 0}</Typography>
               </CardContent>
             </Card>
             <Card sx={{ minWidth: 180, bgcolor: '#fffde7' }}>
@@ -544,7 +544,7 @@ export default function MDDashboard() {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="body2">Total Clients:</Typography>
-                <Typography variant="body2" fontWeight={600}>{jobs.length}</Typography>
+                <Typography variant="body2" fontWeight={600}>{jobs?.length || 0}</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="body2">Active Projects:</Typography>
@@ -557,7 +557,7 @@ export default function MDDashboard() {
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="body2">Success Rate:</Typography>
                 <Typography variant="body2" fontWeight={600}>
-                  {jobs.length > 0 ? Math.round((jobs.filter(j => j.status === 'complete').length / jobs.length) * 100) : 0}%
+                  {(jobs?.length || 0) > 0 ? Math.round(((jobs?.filter(j => j.status === 'complete').length || 0) / (jobs?.length || 1)) * 100) : 0}%
                 </Typography>
               </Box>
             </Card>
@@ -575,7 +575,7 @@ export default function MDDashboard() {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="body2">Avg. Project Value:</Typography>
                 <Typography variant="body2" fontWeight={600}>
-                  UGX {jobs.length > 0 ? Math.round(jobs.reduce((sum, job) => sum + (job.valuationRequirements?.value || 0), 0) / jobs.length).toLocaleString() : 0}
+                  UGX {(jobs?.length || 0) > 0 ? Math.round((jobs?.reduce((sum, job) => sum + (job.valuationRequirements?.value || 0), 0) || 0) / (jobs?.length || 1)).toLocaleString() : 0}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>

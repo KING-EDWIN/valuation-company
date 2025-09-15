@@ -518,7 +518,7 @@ export default function QADashboard() {
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="body2">Total Clients:</Typography>
-                  <Typography variant="body2" fontWeight={600}>{jobs.length}</Typography>
+                  <Typography variant="body2" fontWeight={600}>{jobs?.length || 0}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="body2">Active Jobs:</Typography>

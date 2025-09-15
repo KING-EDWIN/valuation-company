@@ -151,7 +151,7 @@ export default function Dashboard() {
   // Enhanced statistics with more detailed metrics
   const getEnhancedStats = () => {
     if (user?.role === 'admin') {
-      const totalJobs = jobs.length;
+      const totalJobs = jobs?.length || 0;
       
       return [
         { 
@@ -665,7 +665,7 @@ export default function Dashboard() {
           }}>
             <Chip 
               icon={<TrendingIcon />} 
-              label={`${jobs.length} Total Projects`} 
+              label={`${jobs?.length || 0} Total Projects`} 
               color="primary" 
               variant="outlined"
             />
@@ -923,12 +923,12 @@ export default function Dashboard() {
                             <Box sx={{ flexGrow: 1 }}>
                               <LinearProgress 
                                 variant="determinate" 
-                                value={jobs.length > 0 ? (jobs.filter(j => j.status === 'complete').length / jobs.length) * 100 : 0}
+                                value={(jobs?.length || 0) > 0 ? (jobs?.filter(j => j.status === 'complete').length || 0) / (jobs?.length || 1) * 100 : 0}
                                 sx={{ height: 8, borderRadius: 4 }}
                               />
                             </Box>
                             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                              {jobs.length > 0 ? Math.round((jobs.filter(j => j.status === 'complete').length / jobs.length) * 100) : 0}%
+                              {(jobs?.length || 0) > 0 ? Math.round(((jobs?.filter(j => j.status === 'complete').length || 0) / (jobs?.length || 1)) * 100) : 0}%
                             </Typography>
                           </Box>
                         </CardContent>

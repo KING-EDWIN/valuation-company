@@ -27,7 +27,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Divider,
   Tabs,
   Tab,
   Grid,
@@ -38,16 +37,10 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  Badge,
   Alert,
   Snackbar,
   CircularProgress,
-  Avatar,
-  LinearProgress,
-  Stepper,
-  Step,
-  StepLabel,
-  StepContent
+  Avatar
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -56,30 +49,18 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
-  Save as SaveIcon,
-  Cancel as CancelIcon,
   Download as DownloadIcon,
   Description as DescriptionIcon,
   Assessment as AssessmentIcon,
-  Person as PersonIcon,
   Business as BusinessIcon,
   LocationOn as LocationIcon,
   AttachMoney as MoneyIcon,
   Schedule as ScheduleIcon,
   CheckCircle as CheckIcon,
-  Warning as WarningIcon,
   ExpandMore as ExpandMoreIcon,
   FileDownload as FileDownloadIcon,
   PictureAsPdf as PdfIcon,
-  Image as ImageIcon,
-  VideoLibrary as VideoIcon,
-  GpsFixed as GpsIcon,
-  Notes as NotesIcon,
-  Timeline as TimelineIcon,
-  Assignment as AssignmentIcon,
   BarChart as BarChartIcon,
-  PieChart as PieChartIcon,
-  TrendingUp as TrendingUpIcon,
   FilterList as FilterIcon,
   Refresh as RefreshIcon
 } from '@mui/icons-material';
@@ -95,10 +76,10 @@ interface Report {
   report_title: string;
   report_reference_number: string;
   status: string;
-  admin_data: any;
-  field_data: any;
-  qa_data: any;
-  final_data: any;
+  admin_data: Record<string, unknown>;
+  field_data: Record<string, unknown>;
+  qa_data: Record<string, unknown>;
+  final_data: Record<string, unknown>;
   generated_pdf_path: string;
   created_by: number;
   assigned_to: number;
@@ -111,11 +92,11 @@ interface ReportTemplate {
   id: number;
   report_type: string;
   template_name: string;
-  admin_mandatory: any;
-  admin_optional: any;
-  field_mandatory: any;
-  field_optional: any;
-  static_data: any;
+  admin_mandatory: Record<string, unknown>;
+  admin_optional: Record<string, unknown>;
+  field_mandatory: Record<string, unknown>;
+  field_optional: Record<string, unknown>;
+  static_data: Record<string, unknown>;
   is_active: boolean;
 }
 
@@ -401,7 +382,7 @@ export default function ClientDatabase() {
     }
   };
 
-  const renderTemplateFields = (fields: any, prefix = '') => {
+  const renderTemplateFields = (fields: Record<string, unknown>, prefix = '') => {
     if (!fields || typeof fields !== 'object') return null;
 
     return Object.entries(fields).map(([key, value]) => {
@@ -436,7 +417,7 @@ export default function ClientDatabase() {
     });
   };
 
-  const renderEditableTemplateFields = (fields: any, prefix = '') => {
+  const renderEditableTemplateFields = (fields: Record<string, unknown>, prefix = '') => {
     if (!fields || typeof fields !== 'object') return null;
 
     return Object.entries(fields).map(([key, value]) => {
@@ -930,7 +911,7 @@ export default function ClientDatabase() {
 
   // Analytics Tab Component
   const AnalyticsTab = () => {
-    const totalJobs = jobs.length;
+    const totalJobs = jobs?.length || 0;
     const completedJobs = jobs.filter(j => j.status === 'complete').length;
     const pendingJobs = jobs.filter(j => j.status !== 'complete').length;
     const totalValue = jobs.reduce((sum, job) => sum + (job.valuation_requirements?.value || 0), 0);
