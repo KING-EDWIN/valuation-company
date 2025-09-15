@@ -174,10 +174,10 @@ export default function SystemManagerDashboard() {
         </Stack>
 
         {/* Notifications */}
-        {notifications.system_manager.length > 0 && (
+        {notifications?.filter(n => n.category === 'system' || n.priority === 'urgent').length > 0 && (
           <Fade in timeout={1200}>
             <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
-              {notifications.system_manager.map(n => <div key={n.id}>{n.message}</div>)}
+              {notifications?.filter(n => n.category === 'system' || n.priority === 'urgent').map(n => <div key={n.id}>{n.message}</div>)}
             </Alert>
           </Fade>
         )}
