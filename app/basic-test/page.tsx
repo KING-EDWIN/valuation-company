@@ -33,7 +33,7 @@ export default function BasicTest() {
         <h3>localStorage Check:</h3>
         <p id="storageContent">Click button to check</p>
         <button onClick={() => {
-          const content = localStorage.getItem('stanfield_user');
+          const content = localStorage.getItem('valuation_user');
           document.getElementById('storageContent')!.textContent = content || 'No data';
         }}>
           Check localStorage

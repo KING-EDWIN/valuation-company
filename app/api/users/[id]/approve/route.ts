@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { NotificationService } from '../../../../lib/notificationService';
+// import { NotificationService } from '../../../../lib/notificationService';
 
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL,

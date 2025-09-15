@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     const sampleNotifications = [
       {
         user_id: 1,
-        title: 'Welcome to Stanfield Partners',
+        title: 'Welcome to Valuation Company',
         message: 'Your admin account has been set up successfully. You can now manage the entire system.',
         type: 'success',
         category: 'system',

@@ -40,8 +40,8 @@ export default function AdminSettings() {
 
   // Settings state
   const [settings, setSettings] = useState({
-    companyName: 'STANFIELD PARTNERS',
-    companyEmail: 'admin@stanfieldpartners.com',
+    companyName: 'VALUATION COMPANY',
+    companyEmail: 'admin@valuationcompany.com',
     companyPhone: '+256 414 123 456',
     companyAddress: 'Kampala, Uganda',
     timezone: 'Africa/Kampala',

@@ -57,9 +57,9 @@ const optionalDocuments = [
 
 // Emergency contacts data
 const emergencyContacts = [
-  { name: "Field Supervisor", phone: "+256 701 234 567", email: "supervisor@stanfieldpartners.com", role: "Immediate Supervisor" },
-  { name: "Security Team", phone: "+256 702 345 678", email: "security@stanfieldpartners.com", role: "Security Support" },
-  { name: "Technical Support", phone: "+256 703 456 789", email: "tech@stanfieldpartners.com", role: "App & Equipment Support" },
+  { name: "Field Supervisor", phone: "+256 701 234 567", email: "supervisor@valuationcompany.com", role: "Immediate Supervisor" },
+  { name: "Security Team", phone: "+256 702 345 678", email: "security@valuationcompany.com", role: "Security Support" },
+  { name: "Technical Support", phone: "+256 703 456 789", email: "tech@valuationcompany.com", role: "App & Equipment Support" },
   { name: "Emergency Services", phone: "112", email: "", role: "Police/Fire/Ambulance" },
 ];
 

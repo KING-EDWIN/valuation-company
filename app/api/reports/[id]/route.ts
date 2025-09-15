@@ -1,11 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { pool } from '../../../lib/database';
+import { Pool } from 'pg';
+
+const pool = process.env.POSTGRES_URL ? new Pool({
+  connectionString: process.env.POSTGRES_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+}) : null;
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    if (!pool) {
+      return NextResponse.json(
+        { success: false, error: 'Database not configured' },
+        { status: 500 }
+      );
+    }
+
     const reportId = parseInt(params.id);
 
     const result = await pool.query(`
@@ -59,6 +73,13 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    if (!pool) {
+      return NextResponse.json(
+        { success: false, error: 'Database not configured' },
+        { status: 500 }
+      );
+    }
+
     const reportId = parseInt(params.id);
     const body = await request.json();
     const {
@@ -147,6 +168,13 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    if (!pool) {
+      return NextResponse.json(
+        { success: false, error: 'Database not configured' },
+        { status: 500 }
+      );
+    }
+
     const reportId = parseInt(params.id);
 
     await pool.query('DELETE FROM reports WHERE id = $1', [reportId]);

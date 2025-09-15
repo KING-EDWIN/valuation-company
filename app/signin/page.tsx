@@ -15,49 +15,49 @@ import Logo from "../../components/Logo";
 const demoUsers = [
   { 
     name: "Admin User 1", 
-    email: "admin1@stanfield.com", 
+    email: "admin1@valuationcompany.com", 
     password: "admin123", 
     role: "admin",
     color: "#1976d2"
   },
   { 
     name: "Admin User 2", 
-    email: "admin2@stanfield.com", 
+    email: "admin2@valuationcompany.com", 
     password: "admin123", 
     role: "admin",
     color: "#1976d2"
   },
   { 
     name: "Field Worker 1", 
-    email: "field1@stanfield.com", 
+    email: "field1@valuationcompany.com", 
     password: "field123", 
     role: "field_team",
     color: "#388e3c"
   },
   { 
     name: "Field Worker 2", 
-    email: "field2@stanfield.com", 
+    email: "field2@valuationcompany.com", 
     password: "field123", 
     role: "field_team",
     color: "#388e3c"
   },
   { 
     name: "QA Officer", 
-    email: "qa@stanfield.com", 
+    email: "qa@valuationcompany.com", 
     password: "qa123", 
     role: "qa_officer",
     color: "#7c3aed"
   },
   { 
     name: "Managing Director", 
-    email: "md@stanfield.com", 
+    email: "md@valuationcompany.com", 
     password: "md123", 
     role: "md",
     color: "#e53935"
   },
   { 
     name: "Accountant", 
-    email: "accounts@stanfield.com", 
+    email: "accounts@valuationcompany.com", 
     password: "accounts123", 
     role: "accounts",
     color: "#f57c00"
@@ -77,7 +77,7 @@ export default function SignInPage() {
   // Redirect if already logged in
   useEffect(() => {
     const checkAuth = () => {
-      const savedUser = localStorage.getItem('stanfield_user');
+      const savedUser = localStorage.getItem('valuation_user');
       if (savedUser) {
         const user = JSON.parse(savedUser);
         if (user.role) {

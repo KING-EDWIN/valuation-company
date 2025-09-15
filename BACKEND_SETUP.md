@@ -1,4 +1,4 @@
-# 🚀 STANFIELD PARTNERS - Backend Setup Guide
+# 🚀 VALUATION COMPANY - Backend Setup Guide
 
 ## 📋 **Prerequisites**
 - Vercel account
@@ -7,7 +7,7 @@
 ## 🔧 **Step 1: Enable Vercel Postgres**
 
 1. **Go to Vercel Dashboard**: https://vercel.com/dashboard
-2. **Select your project** (stanfield3)
+2. **Select your project** (valuation-company)
 3. **Go to "Storage" tab**
 4. **Click "Create Database"**
 5. **Select "Postgres"**
@@ -53,7 +53,7 @@ NEXTAUTH_SECRET="your-nextauth-secret-here"
 curl -X POST https://your-app.vercel.app/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@stanfieldpartners.com",
+    "email": "admin@valuationcompany.com",
     "password": "password123",
     "name": "Administrator",
     "role": "admin"
@@ -65,7 +65,7 @@ curl -X POST https://your-app.vercel.app/api/auth/register \
 curl -X POST https://your-app.vercel.app/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@stanfieldpartners.com",
+    "email": "admin@valuationcompany.com",
     "password": "password123"
   }'
 ```

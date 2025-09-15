@@ -699,7 +699,7 @@ export default function AccountantDashboard() {
           {selectedJob && (
             <Box>
               <Typography variant="h5" fontWeight={600} mb={3}>
-                STANFIELD PARTNERS
+                VALUATION COMPANY
               </Typography>
               
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, mb: 3 }}>

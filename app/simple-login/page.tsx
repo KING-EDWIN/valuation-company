@@ -16,7 +16,7 @@ export default function SimpleLogin() {
     console.log('After login - user:', user);
     
     // Check localStorage immediately
-    const stored = localStorage.getItem('stanfield_user');
+    const stored = localStorage.getItem('valuation_user');
     console.log('localStorage after login:', stored);
     setLocalStorageContent(stored || 'No data');
     
@@ -34,7 +34,7 @@ export default function SimpleLogin() {
 
   useEffect(() => {
     // Check localStorage on mount
-    const stored = localStorage.getItem('stanfield_user');
+    const stored = localStorage.getItem('valuation_user');
     setLocalStorageContent(stored || 'No data');
     console.log('Page mounted, localStorage:', stored);
   }, []);

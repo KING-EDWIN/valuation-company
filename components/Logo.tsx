@@ -23,6 +23,39 @@ export default function Logo({
 }: LogoProps) {
   const dimensions = sizeMap[size];
   
+  // Create a simple geometric logo instead of using the image
+  const LogoIcon = () => (
+    <Box sx={{
+      width: dimensions.width,
+      height: dimensions.height,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      bgcolor: color === 'light' ? 'rgba(255,255,255,0.2)' : '#1976d2',
+      borderRadius: 2,
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      <Box sx={{
+        width: '60%',
+        height: '60%',
+        border: `3px solid ${color === 'light' ? 'white' : 'white'}`,
+        borderRadius: 1,
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: '20%',
+          left: '20%',
+          right: '20%',
+          bottom: '20%',
+          border: `2px solid ${color === 'light' ? 'white' : 'white'}`,
+          borderRadius: 0.5,
+        }
+      }} />
+    </Box>
+  );
+  
   if (variant === 'vertical') {
     return (
       <Box sx={{ 
@@ -31,13 +64,7 @@ export default function Logo({
         alignItems: 'center',
         gap: 1
       }}>
-        <img
-          src="/logo.png"
-          alt="STANFIELD PARTNERS"
-          width={dimensions.width}
-          height={dimensions.height}
-          style={{ objectFit: 'contain' }}
-        />
+        <LogoIcon />
         {showText && (
           <Box sx={{ textAlign: 'center' }}>
             <Typography 
@@ -50,7 +77,7 @@ export default function Logo({
                 textShadow: color === 'light' ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
               }}
             >
-              STANFIELD PARTNERS
+              VALUATION COMPANY
             </Typography>
             <Typography 
               variant={size === 'small' ? 'caption' : 'body2'}
@@ -63,7 +90,7 @@ export default function Logo({
                 fontStyle: 'italic'
               }}
             >
-              your property partners
+              professional property valuation
             </Typography>
           </Box>
         )}
@@ -77,13 +104,7 @@ export default function Logo({
       alignItems: 'center',
       gap: 2
     }}>
-      <img
-        src="/logo.png"
-        alt="STANFIELD PARTNERS"
-        width={dimensions.width}
-        height={dimensions.height}
-        style={{ objectFit: 'contain' }}
-      />
+      <LogoIcon />
       {showText && (
         <Box>
           <Typography 
@@ -96,7 +117,7 @@ export default function Logo({
               textShadow: color === 'light' ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
             }}
           >
-            STANFIELD PARTNERS
+            VALUATION COMPANY
           </Typography>
           <Typography 
             variant={size === 'small' ? 'caption' : 'body2'}
@@ -109,7 +130,7 @@ export default function Logo({
               fontStyle: 'italic'
             }}
           >
-            your property partners
+            professional property valuation
           </Typography>
         </Box>
       )}

@@ -1,11 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { pool } from '../../../lib/database';
+import { Pool } from 'pg';
+
+const pool = process.env.POSTGRES_URL ? new Pool({
+  connectionString: process.env.POSTGRES_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+}) : null;
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    if (!pool) {
+      return NextResponse.json(
+        { success: false, error: 'Database not configured' },
+        { status: 500 }
+      );
+    }
+
     const reportId = parseInt(params.id);
     const body = await request.json();
     const { role, user_id, data, completed } = body;
@@ -86,6 +100,13 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    if (!pool) {
+      return NextResponse.json(
+        { success: false, error: 'Database not configured' },
+        { status: 500 }
+      );
+    }
+
     const reportId = parseInt(params.id);
 
     const result = await pool.query(`

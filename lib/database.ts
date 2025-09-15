@@ -1,20 +1,28 @@
 import { Pool } from 'pg';
 
 // Create PostgreSQL connection pool
-const pool = new Pool({
+const pool = process.env.POSTGRES_URL ? new Pool({
   connectionString: process.env.POSTGRES_URL,
   ssl: {
     rejectUnauthorized: false
   }
-});
+}) : null;
 
 // Database connection helper
 export async function getConnection() {
+  if (!pool) {
+    throw new Error('Database not configured. Please set POSTGRES_URL environment variable.');
+  }
   return pool;
 }
 
 // Initialize database tables
 export async function initializeDatabase() {
+  if (!pool) {
+    console.log('Database not configured. Skipping database initialization.');
+    return;
+  }
+  
   try {
     // Create users table
     await pool.query(`
@@ -186,6 +194,10 @@ export async function initializeDatabase() {
 
 // Helper function to execute queries
 export async function executeQuery(query: string, params: any[] = []) {
+  if (!pool) {
+    throw new Error('Database not configured. Please set POSTGRES_URL environment variable.');
+  }
+  
   try {
     const result = await pool.query(query, params);
     return result;

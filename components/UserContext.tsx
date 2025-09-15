@@ -33,7 +33,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
-        const savedUser = localStorage.getItem('stanfield_user');
+        const savedUser = localStorage.getItem('valuation_user');
         if (savedUser) {
           const parsedUser = JSON.parse(savedUser);
           setUser(parsedUser);
@@ -46,7 +46,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
       } catch (error) {
         console.error('Error reading from localStorage:', error);
-        localStorage.removeItem('stanfield_user');
+        localStorage.removeItem('valuation_user');
         // Set default admin user for testing
         const defaultUser = { role: 'admin' as Role };
         setUser(defaultUser);
@@ -60,7 +60,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     
     // Update localStorage first
     if (typeof window !== 'undefined') {
-      localStorage.setItem('stanfield_user', JSON.stringify(newUser));
+      localStorage.setItem('valuation_user', JSON.stringify(newUser));
       console.log('User saved to localStorage');
     }
     
@@ -74,7 +74,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     
     // Clear localStorage first
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('stanfield_user');
+      localStorage.removeItem('valuation_user');
       console.log('User removed from localStorage');
     }
     

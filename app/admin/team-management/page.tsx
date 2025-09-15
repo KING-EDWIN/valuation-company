@@ -73,7 +73,7 @@ const mockStaff: StaffMember[] = [
   {
     id: '1',
     name: 'John Mukisa',
-    email: 'john.mukisa@stanfieldpartners.com',
+    email: 'john.mukisa@valuationcompany.com',
     phone: '+256 701 234 567',
     role: 'Senior Valuer',
     department: 'Valuation',
@@ -90,7 +90,7 @@ const mockStaff: StaffMember[] = [
   {
     id: '2',
     name: 'Sarah Nalukenge',
-    email: 'sarah.nalukenge@stanfieldpartners.com',
+    email: 'sarah.nalukenge@valuationcompany.com',
     phone: '+256 702 345 678',
     role: 'Team Lead',
     department: 'Valuation',
@@ -107,7 +107,7 @@ const mockStaff: StaffMember[] = [
   {
     id: '3',
     name: 'David Ochieng',
-    email: 'david.ochieng@stanfieldpartners.com',
+    email: 'david.ochieng@valuationcompany.com',
     phone: '+256 703 456 789',
     role: 'Managing Director',
     department: 'Executive',
@@ -124,7 +124,7 @@ const mockStaff: StaffMember[] = [
   {
     id: '4',
     name: 'Mary Nakato',
-    email: 'mary.nakato@stanfieldpartners.com',
+    email: 'mary.nakato@valuationcompany.com',
     phone: '+256 704 567 890',
     role: 'QA Officer',
     department: 'Quality Assurance',
@@ -141,7 +141,7 @@ const mockStaff: StaffMember[] = [
   {
     id: '5',
     name: 'Peter Ssemwanga',
-    email: 'peter.ssemwanga@stanfieldpartners.com',
+    email: 'peter.ssemwanga@valuationcompany.com',
     phone: '+256 705 678 901',
     role: 'Field Agent',
     department: 'Field Operations',
@@ -158,7 +158,7 @@ const mockStaff: StaffMember[] = [
   {
     id: '6',
     name: 'Grace Namukasa',
-    email: 'grace.namukasa@stanfieldpartners.com',
+    email: 'grace.namukasa@valuationcompany.com',
     phone: '+256 706 789 012',
     role: 'Accounts Officer',
     department: 'Finance',

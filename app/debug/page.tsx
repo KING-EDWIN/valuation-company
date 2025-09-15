@@ -58,7 +58,7 @@ export default function DebugPage() {
         </div>
         <button 
           onClick={() => {
-            const content = localStorage.getItem('stanfield_user');
+            const content = localStorage.getItem('valuation_user');
             document.getElementById('localStorageContent')!.textContent = content || 'No data';
           }}
           style={{ 

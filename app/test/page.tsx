@@ -22,7 +22,7 @@ export default function TestPage() {
 
   const handleClearStorage = () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('stanfield_user');
+      localStorage.removeItem('valuation_user');
       setLocalStorageData('Storage cleared');
       console.log('localStorage cleared');
     }
@@ -30,7 +30,7 @@ export default function TestPage() {
 
   const checkLocalStorage = () => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('stanfield_user');
+      const stored = localStorage.getItem('valuation_user');
       setLocalStorageData(stored || 'No data in localStorage');
       console.log('localStorage content:', stored);
     }

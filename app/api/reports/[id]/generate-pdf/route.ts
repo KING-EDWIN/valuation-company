@@ -112,7 +112,7 @@ export async function GET(
 
         <div class="footer">
           <p>Generated on ${new Date().toLocaleString()}</p>
-          <p>Stanfield Partners - Professional Valuation Services</p>
+          <p>Valuation Company - Professional Valuation Services</p>
         </div>
       </body>
       </html>
