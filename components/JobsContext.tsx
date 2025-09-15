@@ -105,7 +105,17 @@ export const JobsProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchJobs = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/jobs', { cache: 'no-store' as RequestCache });
+      const response = await fetch('/api/jobs', { 
+        cache: 'no-store' as RequestCache,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       
       if (data.success) {

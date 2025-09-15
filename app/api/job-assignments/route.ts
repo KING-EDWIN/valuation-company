@@ -4,6 +4,12 @@ import { NotificationService } from '../../../lib/notificationService';
 
 export async function GET() {
   try {
+    if (!pool) {
+      return NextResponse.json({
+        success: true,
+        data: []
+      });
+    }
     const result = await pool.query(`
       SELECT ja.*,
              j.client_name,

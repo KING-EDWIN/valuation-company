@@ -40,7 +40,9 @@ import {
   Alert,
   Snackbar,
   CircularProgress,
-  Avatar
+  Avatar,
+  LinearProgress,
+  Badge
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -754,7 +756,7 @@ export default function ClientDatabase() {
           {reports.map((report) => {
             const job = jobs.find(j => j.id === report.job_id);
             return (
-              <Grid item xs={12} md={6} lg={4} key={report.id}>
+                <Grid item xs={12} md={6} lg={4} key={report.id}>
                 <Card sx={{ height: '100%' }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>

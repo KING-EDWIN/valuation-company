@@ -3,6 +3,12 @@ import { pool } from '../../../lib/database';
 
 export async function GET(request: NextRequest) {
   try {
+    if (!pool) {
+      return NextResponse.json({
+        success: true,
+        data: []
+      });
+    }
     const { searchParams } = new URL(request.url);
     const reportType = searchParams.get('report_type');
     const isActive = searchParams.get('is_active');

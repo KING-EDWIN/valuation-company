@@ -1,16 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
-const pool = new Pool({
+const pool = process.env.POSTGRES_URL ? new Pool({
   connectionString: process.env.POSTGRES_URL,
   ssl: {
     rejectUnauthorized: false
   }
-});
+}) : null;
 
 // GET /api/users - Fetch all users
 export async function GET(request: NextRequest) {
   try {
+    if (!pool) {
+      return NextResponse.json({
+        success: true,
+        data: []
+      });
+    }
     const result = await pool.query(`
       SELECT id, name, email, role, phone, department, approved, approved_by, approved_at, created_at, updated_at
       FROM users 
